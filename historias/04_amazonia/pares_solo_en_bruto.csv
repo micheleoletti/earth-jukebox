@@ -1,0 +1,16 @@
+a,b,escala,r_primario_bruto,r_secundario,motivo
+precip_amazon_arc,evap_amazon_arc,mensual,0.742,0.271,estación o tendencia compartida
+precip_amazon_arc,fires_amazon_arc,mensual,-0.66,0.199,estación o tendencia compartida
+soil_root_amazon_arc,evap_amazon_arc,mensual,0.815,0.384,estación o tendencia compartida
+soil_root_amazon_arc,fires_amazon_arc,mensual,-0.856,-0.234,estación o tendencia compartida
+tmax_amazon_arc,fires_amazon_arc,mensual,0.827,-0.211,estación o tendencia compartida
+evap_amazon_arc,fires_amazon_arc,mensual,-0.783,0.28,estación o tendencia compartida
+precip_amazon_arc,lights_amazon_arc,anual,-0.852,-0.047,tendencia compartida
+precip_amazon_arc,gbif_aves_amazon_arc,anual,-0.804,-0.309,tendencia compartida
+soil_root_amazon_arc,lights_amazon_arc,anual,-0.733,-0.229,tendencia compartida
+soil_root_amazon_arc,gbif_aves_amazon_arc,anual,-0.717,-0.304,tendencia compartida
+tmax_amazon_arc,lights_amazon_arc,anual,0.687,0.334,tendencia compartida
+tmax_amazon_arc,gbif_aves_amazon_arc,anual,0.738,0.237,tendencia compartida
+evap_amazon_arc,lights_amazon_arc,anual,-0.809,0.072,tendencia compartida
+evap_amazon_arc,gbif_aves_amazon_arc,anual,-0.777,-0.302,tendencia compartida
+lights_amazon_arc,gbif_aves_amazon_arc,anual,0.966,0.413,tendencia compartida

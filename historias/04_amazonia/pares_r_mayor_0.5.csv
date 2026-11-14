@@ -1,0 +1,15 @@
+a,b,escala,r_secundario,desfase_meses,r_primario_bruto,p,n,armonia,rupturas
+fires_amazon_arc,aod_amazon_arc,anual,0.863,0,0.873,,,,
+precip_amazon_arc,soil_root_amazon_arc,anual,0.824,0,0.912,,,,
+soil_root_amazon_arc,tmax_amazon_arc,anual,-0.807,0,-0.933,,,,
+precip_amazon_arc,evap_amazon_arc,anual,0.777,0,0.904,,,,
+soil_root_amazon_arc,evap_amazon_arc,anual,0.726,0,0.878,,,,
+tmax_amazon_arc,evap_amazon_arc,anual,-0.631,0,-0.878,,,,
+precip_amazon_arc,tmax_amazon_arc,anual,-0.589,0,-0.857,,,,
+tmax_amazon_arc,evap_amazon_arc,mensual,-0.578,0,-0.75,0.0,540.0,movimiento contrario (terceras),0.0
+precip_amazon_arc,soil_root_amazon_arc,mensual,0.576,1,0.613,0.0,539.0,consonancia (terceras),0.0
+aod_amazon_arc,lights_amazon_arc,anual,0.57,0,-0.27,,,,
+soil_root_amazon_arc,tmax_amazon_arc,mensual,-0.555,0,-0.93,0.0,540.0,movimiento contrario (terceras),0.0
+fires_amazon_arc,aod_amazon_arc,mensual,0.532,0,0.17,0.0,300.0,consonancia (terceras),0.0
+fires_amazon_arc,lights_amazon_arc,anual,0.523,0,-0.152,,,,
+soil_root_amazon_arc,aod_amazon_arc,anual,-0.511,0,-0.114,,,,
