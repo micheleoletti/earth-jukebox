@@ -1,0 +1,12 @@
+a,b,escala,r_primario_bruto,r_secundario,motivo
+precip_peru_coast,precip_california,mensual,0.525,0.195,estación o tendencia compartida
+precip_peru_coast,precip_india_igp,mensual,-0.537,-0.098,estación o tendencia compartida
+precip_peru_coast,precip_amazon_arc,mensual,0.632,0.198,estación o tendencia compartida
+precip_borneo_sumatra,precip_india_igp,mensual,-0.528,0.064,estación o tendencia compartida
+fires_borneo_sumatra,precip_india_igp,mensual,0.562,-0.198,estación o tendencia compartida
+precip_california,precip_india_igp,mensual,-0.688,-0.084,estación o tendencia compartida
+precip_california,precip_amazon_arc,mensual,0.723,-0.074,estación o tendencia compartida
+precip_india_igp,precip_amazon_arc,mensual,-0.75,-0.163,estación o tendencia compartida
+precip_borneo_sumatra,precip_amazon_arc,anual,-0.66,-0.31,tendencia compartida
+fires_borneo_sumatra,precip_india_igp,anual,-0.52,-0.333,tendencia compartida
+tropics_20S_20N,precip_amazon_arc,anual,-0.694,-0.156,tendencia compartida

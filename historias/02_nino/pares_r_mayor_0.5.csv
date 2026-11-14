@@ -1,0 +1,13 @@
+a,b,escala,r_secundario,desfase_meses,r_primario_bruto,p,n,armonia,rupturas
+oni,nino34_gistemp,mensual,0.987,0,0.98,0.0,573.0,consonancia perfecta (unísono/quinta),0.0
+oni,nino34_gistemp,anual,0.986,0,0.985,,,,
+oni,tropics_20S_20N,mensual,0.835,2,0.474,0.0,572.0,consonancia perfecta (unísono/quinta),3.0
+nino34_gistemp,tropics_20S_20N,mensual,0.827,2,0.511,0.0,572.0,consonancia perfecta (unísono/quinta),2.0
+precip_borneo_sumatra,fires_borneo_sumatra,anual,-0.732,0,-0.793,,,,
+oni,tropics_20S_20N,anual,0.722,0,0.34,,,,
+nino34_gistemp,tropics_20S_20N,anual,0.718,0,0.414,,,,
+nino34_gistemp,fires_borneo_sumatra,anual,0.624,0,0.581,,,,
+oni,fires_borneo_sumatra,anual,0.604,0,0.525,,,,
+nino34_gistemp,precip_australia_se,anual,-0.533,0,-0.534,,,,
+oni,precip_australia_se,anual,-0.52,0,-0.505,,,,
+precip_borneo_sumatra,fires_borneo_sumatra,mensual,-0.516,0,-0.637,0.0,300.0,movimiento contrario (terceras),0.0
