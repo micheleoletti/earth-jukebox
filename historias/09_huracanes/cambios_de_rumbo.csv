@@ -1,0 +1,5 @@
+disruptor,tipo,inicio,fin,variable,cambio,tendencia_antes_por_decada,tendencia_despues_por_decada,unidad,percentil,ventana_antes,ventana_despues,origen
+Mes de energía ciclónica extrema 2003,tormenta,2003-09,2003-09,oni,cambio de tendencia (de subir a bajar),4.1445,-2.89,degC,0.998,1998-09→2003-08,2004-01→2008-12,"detectado en datos: ace_north_atlantic, z≥3.0"
+Temporada 2004,tormenta,2004-08,2004-09,skin_temp_atlantic_mdr,cambio de tendencia (de subir a bajar),1.3035,-1.5269,C,0.976,1999-08→2004-07,2005-01→2009-12,catálogo curado (verificar)
+Mes de energía ciclónica extrema 2004,tormenta,2004-09,2004-09,atlantic_mdr_sst,cambio de tendencia (de subir a bajar),1.0243,-1.203,degC anomaly 1951-1980,0.958,1999-09→2004-08,2005-01→2009-12,"detectado en datos: ace_north_atlantic, z≥3.0"
+Mes de energía ciclónica extrema 2016,tormenta,2016-10,2016-10,oni,cambio de tendencia (de subir a bajar),4.0582,-1.742,degC,0.956,2011-10→2016-09,2017-02→2022-01,"detectado en datos: ace_north_atlantic, z≥3.0"

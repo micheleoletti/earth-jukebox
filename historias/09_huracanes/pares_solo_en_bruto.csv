@@ -1,0 +1,9 @@
+a,b,escala,r_primario_bruto,r_secundario,motivo
+ace_north_atlantic,skin_temp_atlantic_mdr,mensual,0.749,0.205,estación o tendencia compartida
+ace_north_atlantic,wind_atlantic_mdr,mensual,-0.595,-0.148,estación o tendencia compartida
+atlantic_mdr_sst,gistemp_global,mensual,0.667,0.455,estación o tendencia compartida
+north_atlantic_0_60N,gistemp_global,mensual,0.826,0.46,estación o tendencia compartida
+ace_north_atlantic,atlantic_mdr_sst,anual,0.549,0.428,tendencia compartida
+ace_north_atlantic,skin_temp_atlantic_mdr,anual,0.622,0.41,tendencia compartida
+ace_north_atlantic,wind_atlantic_mdr,anual,-0.507,-0.465,tendencia compartida
+skin_temp_atlantic_mdr,gistemp_global,anual,0.73,0.41,tendencia compartida
