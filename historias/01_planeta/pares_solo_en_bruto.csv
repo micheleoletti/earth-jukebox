@@ -1,0 +1,11 @@
+a,b,escala,r_primario_bruto,r_secundario,motivo
+co2_mlo,gistemp_global,mensual,0.898,0.299,estación o tendencia compartida
+co2_mlo,global_mean_sea_level,mensual,0.959,0.443,estación o tendencia compartida
+gistemp_global,global_mean_sea_level,mensual,0.857,0.403,estación o tendencia compartida
+sea_ice_extent_north,sea_ice_extent_south,mensual,-0.936,-0.115,estación o tendencia compartida
+co2_mlo,gistemp_global,anual,0.944,0.456,tendencia compartida
+co2_mlo,global_mean_sea_level,anual,0.997,0.269,tendencia compartida
+co2_mlo,sea_ice_extent_north,anual,-0.95,-0.094,tendencia compartida
+gistemp_global,global_mean_sea_level,anual,0.936,0.466,tendencia compartida
+gistemp_global,sea_ice_extent_north,anual,-0.938,-0.177,tendencia compartida
+global_mean_sea_level,sea_ice_extent_north,anual,-0.892,0.443,tendencia compartida

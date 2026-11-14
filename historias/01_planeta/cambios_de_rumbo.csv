@@ -1,0 +1,3 @@
+disruptor,tipo,inicio,fin,variable,cambio,tendencia_antes_por_decada,tendencia_despues_por_decada,unidad,percentil,ventana_antes,ventana_despues,origen
+Pico térmico global 1995,calor,1995-02,1995-02,co2_mlo,aceleración,10.5666,19.0576,ppm,0.964,1990-02→1995-01,1995-06→2000-05,"detectado en datos: gistemp_global, z≥2.0"
+Black Summer (Australia),fuego,2019-09,2020-02,gistemp_global,aceleración (arranca una tendencia),0.0244,1.1432,degC anomaly 1951-1980,0.989,2014-09→2019-08,2020-06→2025-05,catálogo curado (verificar)
