@@ -1,0 +1,7 @@
+a,b,escala,r_primario_bruto,r_secundario,motivo
+tmax_iberia,precip_iberia,mensual,-0.542,-0.276,estación o tendencia compartida
+tmax_iberia,soil_root_iberia,mensual,-0.779,-0.331,estación o tendencia compartida
+tmax_iberia,fires_iberia,mensual,0.524,0.246,estación o tendencia compartida
+soil_root_iberia,fires_iberia,mensual,-0.592,-0.303,estación o tendencia compartida
+fires_iberia,humidity_iberia,mensual,-0.62,-0.43,estación o tendencia compartida
+gistemp_iberia,lights_iberia,anual,0.582,0.035,tendencia compartida

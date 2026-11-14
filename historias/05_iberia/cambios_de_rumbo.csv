@@ -1,0 +1,3 @@
+disruptor,tipo,inicio,fin,variable,cambio,tendencia_antes_por_decada,tendencia_despues_por_decada,unidad,percentil,ventana_antes,ventana_despues,origen
+Mes de calor extremo 1988,calor,1988-09,1988-09,gistemp_iberia,cambio de tendencia (de subir a bajar),1.0902,-2.8057,degC anomaly 1951-1980,0.982,1983-09→1988-08,1989-01→1993-12,"detectado en datos: tmax_iberia, z≥2.0"
+Verano extremo 2022,calor,2022-06,2022-08,fires_iberia,aceleración (arranca una tendencia),-734.4707,3703.7178,detecciones/mes,0.98,2017-06→2022-05,2022-12→2025-12,catálogo curado (verificar)

@@ -1,0 +1,47 @@
+disruptor,tipo,inicio,fin,fuerza_sigma,giros_de_tendencia,origen
+Mes de calor extremo 1981,calor,1981-06,1981-06,0.75,0,"detectado en datos: tmax_iberia, z≥2.0"
+El Niño 1982–83 (muy fuerte),enso+,1982-05,1983-06,0.43,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+La Niña 1984–85 (moderado),enso-,1984-10,1985-06,0.61,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+Mes de calor extremo 1985,calor,1985-11,1985-11,0.7,0,"detectado en datos: tmax_iberia, z≥2.0"
+El Niño 1986–88 (moderado),enso+,1986-09,1988-01,0.45,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+Mes de calor extremo 1987,calor,1987-02,1987-02,0.82,0,"detectado en datos: tmax_iberia, z≥2.0"
+La Niña 1988–89 (fuerte),enso-,1988-05,1989-05,0.42,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+Mes de calor extremo 1988,calor,1988-09,1988-09,1.0,1,"detectado en datos: tmax_iberia, z≥2.0"
+El Niño 1991–92 (fuerte),enso+,1991-06,1992-06,0.75,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+La Niña 1995–96 (moderado),enso-,1995-08,1996-03,1.02,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+El Niño 1997–98 (muy fuerte),enso+,1997-05,1998-04,1.1,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+La Niña 1998–00 (fuerte),enso-,1998-07,2000-06,0.64,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+Mes de calor extremo 2001,calor,2001-05,2001-05,0.61,0,"detectado en datos: tmax_iberia, z≥2.0"
+Mes de calor extremo 2002,calor,2002-03,2002-03,1.1,0,"detectado en datos: tmax_iberia, z≥2.0"
+El Niño 2002–03 (moderado),enso+,2002-07,2003-02,0.88,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+Ola de calor europea 2003,calor,2003-06,2003-08,3.72,0,catálogo curado (verificar)
+Incendios de Portugal 2003,fuego,2003-08,2003-09,3.72,0,catálogo curado (verificar)
+Mes de incendios extremo 2003,fuego,2003-08,2003-08,3.72,0,"detectado en datos: fires_iberia, z≥2.5"
+Sequía ibérica 2005,sequía,2004-11,2005-10,5.73,0,catálogo curado (verificar)
+Incendios de Portugal 2005,fuego,2005-08,2005-08,5.73,0,catálogo curado (verificar)
+Mes de incendios extremo 2005,fuego,2005-08,2005-08,5.73,0,"detectado en datos: fires_iberia, z≥2.5"
+Mes de calor extremo 2006,calor,2006-05,2006-05,3.9,0,"detectado en datos: tmax_iberia, z≥2.0"
+Mes de incendios extremo 2006,fuego,2006-08,2006-08,3.9,0,"detectado en datos: fires_iberia, z≥2.5"
+La Niña 2007–08 (fuerte),enso-,2007-08,2008-06,1.31,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+El Niño 2009–10 (fuerte),enso+,2009-07,2010-03,0.71,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+La Niña 2010–11 (fuerte),enso-,2010-06,2011-05,1.23,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+La Niña 2011–12 (moderado),enso-,2011-08,2012-02,3.61,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+Mes de incendios extremo 2011,fuego,2011-10,2011-10,3.61,0,"detectado en datos: fires_iberia, z≥2.5"
+El Niño 2014–16 (muy fuerte),enso+,2014-10,2016-05,2.05,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+Mes de calor extremo 2015,calor,2015-05,2015-05,1.56,0,"detectado en datos: tmax_iberia, z≥2.0"
+Mes de calor extremo 2016,calor,2016-09,2016-09,0.64,0,"detectado en datos: tmax_iberia, z≥2.0"
+Incendios de Pedrógão Grande,fuego,2017-06,2017-06,0.53,0,catálogo curado (verificar)
+Incendios de octubre 2017,fuego,2017-10,2017-10,3.38,0,catálogo curado (verificar)
+Mes de incendios extremo 2017,fuego,2017-10,2017-10,3.38,0,"detectado en datos: fires_iberia, z≥2.5"
+El Niño 2018–19 (moderado),enso+,2018-09,2019-06,0.44,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+La Niña 2020–21 (moderado),enso-,2020-09,2021-04,0.65,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+Sequía 2022–23,sequía,2022-01,2023-09,2.66,0,catálogo curado (verificar)
+Verano extremo 2022,calor,2022-06,2022-08,2.66,1,catálogo curado (verificar)
+Incendios de 2022 (Sierra de la Culebra),fuego,2022-06,2022-08,2.66,0,catálogo curado (verificar)
+Mes de incendios extremo 2022,fuego,2022-07,2022-07,2.66,0,"detectado en datos: fires_iberia, z≥2.5"
+Mes de calor extremo 2023,calor,2023-04,2023-04,0.89,0,"detectado en datos: tmax_iberia, z≥2.0"
+El Niño 2023–24 (fuerte),enso+,2023-06,2024-04,0.54,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+Mes de calor extremo 2023,calor,2023-10,2023-10,1.08,0,"detectado en datos: tmax_iberia, z≥2.0"
+DANA de Valencia,tormenta,2024-10,2024-11,0.56,0,catálogo curado (verificar)
+Mes de incendios extremo 2025,fuego,2025-08,2025-08,9.67,0,"detectado en datos: fires_iberia, z≥2.5"
+El Niño 2026–26 (muy fuerte),enso+,2026-05,2026-09,1.03,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
