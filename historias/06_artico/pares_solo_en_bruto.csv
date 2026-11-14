@@ -1,0 +1,14 @@
+a,b,escala,r_primario_bruto,r_secundario,motivo
+arctic_64N_90N,gistemp_global,mensual,0.74,0.328,estación o tendencia compartida
+arctic_64N_90N,co2_mlo,mensual,0.696,0.124,estación o tendencia compartida
+sea_ice_extent_north,temp_arctic,mensual,-0.647,-0.161,estación o tendencia compartida
+sea_ice_extent_north,fires_arctic,mensual,-0.581,-0.227,estación o tendencia compartida
+gistemp_global,co2_mlo,mensual,0.898,0.299,estación o tendencia compartida
+temp_arctic,fires_arctic,mensual,0.829,0.11,estación o tendencia compartida
+arctic_64N_90N,gistemp_global,anual,0.934,0.342,tendencia compartida
+arctic_64N_90N,co2_mlo,anual,0.915,0.13,tendencia compartida
+sea_ice_extent_north,gistemp_global,anual,-0.938,-0.177,tendencia compartida
+sea_ice_extent_north,co2_mlo,anual,-0.95,-0.094,tendencia compartida
+gistemp_global,temp_arctic,anual,0.824,0.323,tendencia compartida
+gistemp_global,co2_mlo,anual,0.944,0.456,tendencia compartida
+temp_arctic,co2_mlo,anual,0.785,0.141,tendencia compartida

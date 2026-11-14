@@ -1,0 +1,5 @@
+a,b,escala,r_secundario,desfase_meses,r_primario_bruto,p,n,armonia,rupturas
+arctic_64N_90N,sea_ice_extent_north,anual,-0.735,0,-0.954,,,,
+arctic_64N_90N,temp_arctic,anual,0.667,0,0.886,,,,
+arctic_64N_90N,temp_arctic,mensual,0.65,0,-0.159,0.0,540.0,consonancia perfecta (unísono/quinta),0.0
+sea_ice_extent_north,temp_arctic,anual,-0.543,0,-0.847,,,,

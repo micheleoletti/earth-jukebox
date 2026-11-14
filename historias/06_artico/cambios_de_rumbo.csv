@@ -1,0 +1,7 @@
+disruptor,tipo,inicio,fin,variable,cambio,tendencia_antes_por_decada,tendencia_despues_por_decada,unidad,percentil,ventana_antes,ventana_despues,origen
+Mínimo anómalo de hielo 1989,hielo,1989-04,1989-04,gistemp_global,cambio de tendencia (de subir a bajar),0.5745,-0.5102,degC anomaly 1951-1980,0.976,1984-04→1989-03,1989-08→1994-07,"detectado en datos: sea_ice_extent_north, z≥2.0"
+Mínimo anómalo de hielo 2016,hielo,2016-10,2016-11,temp_arctic,cambio de tendencia (de subir a bajar),2.6978,-2.0818,C,0.957,2011-10→2016-09,2017-03→2022-02,"detectado en datos: sea_ice_extent_north, z≥2.0"
+Incendios de Siberia 2019,fuego,2019-06,2019-08,fires_arctic,cambio de tendencia (de bajar a subir),-5159.6012,14679.4896,detecciones/mes,0.983,2014-06→2019-05,2019-12→2024-11,catálogo curado (verificar)
+Ola de calor siberiana,calor,2020-01,2020-06,gistemp_global,aceleración (arranca una tendencia),-0.0065,1.1162,degC anomaly 1951-1980,0.996,2015-01→2019-12,2020-10→2025-09,catálogo curado (verificar)
+Mínimo anómalo de hielo 2020,hielo,2020-09,2020-10,arctic_64N_90N,cambio de tendencia (de bajar a subir),-0.7836,2.6313,degC anomaly 1951-1980,0.989,2015-09→2020-08,2021-02→2026-01,"detectado en datos: sea_ice_extent_north, z≥2.0"
+Mínimo anómalo de hielo 2020,hielo,2020-09,2020-10,gistemp_global,aceleración (arranca una tendencia),-0.0536,1.017,degC anomaly 1951-1980,0.969,2015-09→2020-08,2021-02→2026-01,"detectado en datos: sea_ice_extent_north, z≥2.0"
