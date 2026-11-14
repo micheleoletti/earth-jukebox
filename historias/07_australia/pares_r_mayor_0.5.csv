@@ -1,0 +1,19 @@
+a,b,escala,r_secundario,desfase_meses,r_primario_bruto,p,n,armonia,rupturas
+precip_australia_se,soil_root_australia_se,anual,0.941,0,0.957,,,,
+precip_australia_se,evap_australia_se,anual,0.899,0,0.913,,,,
+soil_root_australia_se,evap_australia_se,anual,0.855,0,0.873,,,,
+tmax_australia_se,evap_australia_se,anual,-0.848,0,-0.85,,,,
+soil_root_australia_se,evap_australia_se,mensual,0.836,0,0.083,0.0,540.0,consonancia perfecta (unísono/quinta),0.0
+soil_root_australia_se,tmax_australia_se,anual,-0.757,0,-0.799,,,,
+precip_australia_se,tmax_australia_se,anual,-0.742,0,-0.777,,,,
+precip_australia_se,soil_root_australia_se,mensual,0.639,1,0.287,0.0,539.0,consonancia perfecta (unísono/quinta),0.0
+precip_australia_se,evap_australia_se,mensual,0.618,1,0.404,0.0,539.0,consonancia perfecta (unísono/quinta),0.0
+soil_root_australia_se,tmax_australia_se,mensual,-0.609,0,-0.725,0.0,540.0,movimiento contrario perfecta (unísono/quinta),0.0
+iod_dmi_gistemp,evap_australia_se,anual,-0.604,0,-0.59,,,,
+iod_dmi_gistemp,precip_australia_se,anual,-0.599,0,-0.562,,,,
+tmax_australia_se,evap_australia_se,mensual,-0.592,0,0.549,0.0,540.0,movimiento contrario (terceras),0.0
+oni,evap_australia_se,anual,-0.586,0,-0.568,,,,
+iod_dmi_gistemp,soil_root_australia_se,anual,-0.564,0,-0.533,,,,
+tmax_australia_se,fires_australia_se,anual,0.537,0,0.494,,,,
+evap_australia_se,fires_australia_se,anual,-0.522,0,-0.489,,,,
+oni,precip_australia_se,anual,-0.52,0,-0.505,,,,

@@ -1,0 +1,4 @@
+disruptor,tipo,inicio,fin,variable,cambio,tendencia_antes_por_decada,tendencia_despues_por_decada,unidad,percentil,ventana_antes,ventana_despues,origen
+Déficit de lluvia 2017,sequía,2017-09,2017-10,iod_dmi_gistemp,aceleración (arranca una tendencia),0.0952,-2.1525,degC,0.984,2012-09→2017-08,2018-02→2023-01,"detectado en datos: precip_australia_se, z≥1.5"
+Déficit de lluvia 2017,sequía,2017-09,2017-10,soil_root_australia_se,aceleración (arranca una tendencia),-0.0761,0.3602,1,0.978,2012-09→2017-08,2018-02→2023-01,"detectado en datos: precip_australia_se, z≥1.5"
+Déficit de lluvia 2017,sequía,2017-09,2017-10,precip_australia_se,aceleración (arranca una tendencia),-0.4651,3.8822,mm/day,0.959,2012-09→2017-08,2018-02→2023-01,"detectado en datos: precip_australia_se, z≥1.5"
