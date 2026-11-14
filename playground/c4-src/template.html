@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Planet Breathing</title>
+<style>
+:root{
+  --bg:#02040a; --panel:rgba(9,13,25,.78); --line:rgba(140,170,255,.16);
+  --text:#e9edf8; --muted:#8f9aba; --green:#7ee08a; --amber:#ffb45c; --accent:#7fd4ff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
+  font:14px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;overflow:hidden}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.glass{background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+
+#title{position:fixed;left:22px;top:20px;z-index:3;max-width:330px;pointer-events:none}
+#title .kick{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+#title h1{margin:4px 0 6px;font-size:30px;line-height:1.05;font-weight:700;letter-spacing:-.01em}
+#title p{margin:0;color:#b4bdd6;font-size:13px;text-shadow:0 1px 8px #000,0 0 2px #000}
+
+#clock{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:3;text-align:center;pointer-events:none}
+#month{font:700 52px/1 "SF Mono",ui-monospace,Menlo,monospace;letter-spacing:.04em;text-shadow:0 0 24px rgba(127,212,255,.35)}
+#season{margin-top:6px;font-size:13px;color:#c9d2ea;min-height:18px;text-shadow:0 1px 8px #000,0 0 3px #000}
+
+#read{position:fixed;right:20px;top:22px;z-index:3;border-radius:14px;padding:12px 14px;width:236px}
+#read .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:2px 0}
+#read .k{color:var(--muted);font-size:12px}
+#read .v{font:600 20px/1.2 "SF Mono",ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+#read .g{color:var(--green)} #read .a{color:var(--amber)}
+#read .bar{height:4px;border-radius:2px;background:rgba(255,255,255,.08);margin:3px 0 9px;overflow:hidden}
+#read .bar i{display:block;height:100%;border-radius:2px}
+
+#panel{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:3;border-radius:16px;padding:12px 14px 10px;
+  width:min(820px,calc(100% - 32px))}
+#panel .top{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+#play{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--text);
+  cursor:pointer;font-size:14px;flex:none}
+#play:hover{background:rgba(255,255,255,.12)}
+#legend{display:flex;gap:16px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+#legend b{font-weight:600}
+#legend .sw{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:3px;margin-right:6px}
+#insight{margin-left:auto;font-size:12px;color:var(--text);text-align:right}
+#insight b{color:var(--accent)}
+#chart{width:100%;height:120px;display:block;cursor:ew-resize;touch-action:none}
+#src{font-size:10.5px;color:var(--muted);margin-top:4px;opacity:.8}
+
+@media (max-width:760px){
+  #title{left:16px;top:14px;max-width:60%} #title h1{font-size:22px} #title p{display:none}
+  #clock{top:auto;bottom:228px} #month{font-size:34px}
+  #read{right:16px;top:14px;width:170px;padding:9px 11px} #read .v{font-size:16px}
+  #insight{display:none}
+}
+</style>
+<script type="importmap">
+{"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="title">
+  <div class="kick">Earth Jukebox · Story C4</div>
+  <h1>The Planet Breathing</h1>
+  <p>Every northern summer, forests wake up and pull carbon dioxide out of the air. Every winter, it comes back. Tree height shows how green each place is this month.</p>
+</div>
+
+<div id="clock"><div id="month">JAN</div><div id="season"></div></div>
+
+<div id="read" class="glass">
+  <div class="row"><span class="k">Northern greenness</span><span class="v g" id="vG">0.00</span></div>
+  <div class="bar"><i id="bG" style="background:var(--green)"></i></div>
+  <div class="row"><span class="k">CO₂ in the air</span><span class="v a" id="vC">0.0</span></div>
+  <div class="bar"><i id="bC" style="background:var(--amber)"></i></div>
+  <div class="row"><span class="k">vs yearly average</span><span class="v a" id="vD" style="font-size:15px">0.0</span></div>
+</div>
+
+<div id="panel" class="glass">
+  <div class="top">
+    <button id="play" aria-label="Pause">❚❚</button>
+    <div id="legend">
+      <span><span class="sw" style="background:var(--green)"></span><b>Greenness</b> north of 50°N</span>
+      <span><span class="sw" style="background:var(--amber)"></span><b>CO₂</b> seasonal swing</span>
+    </div>
+    <div id="insight"></div>
+  </div>
+  <canvas id="chart"></canvas>
+  <div id="src">Data: NASA MODIS MOD13C2 NDVI (2021, monthly, 0.05°) · NOAA GML Mauna Loa CO₂ (monthly). Tree height and haze are exaggerated for readability.</div>
+</div>
+
+<script>window.DATA = /*__DATA__*/;</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
+
+const D = window.DATA, S = D.series;
+const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+const R = 8;
+
+// ---------- renderer ----------
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x02040a);
+const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 4000);
+camera.position.set(-6, 15, 22);
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true; controls.dampingFactor = .06; controls.enablePan = false;
+controls.minDistance = 10.5; controls.maxDistance = 70;
+controls.autoRotate = true; controls.autoRotateSpeed = .28;
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), .32, .45, .8);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+// ---------- stars ----------
+{
+  const n = 5000, p = new Float32Array(n * 3), c = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++){
+    const r = 700 + Math.random() * 800, th = Math.random() * 6.2832, ph = Math.acos(2 * Math.random() - 1);
+    p.set([r * Math.sin(ph) * Math.cos(th), r * Math.cos(ph), r * Math.sin(ph) * Math.sin(th)], i * 3);
+    const k = .45 + Math.random() * .55; c.set(Math.random() < .15 ? [k, k * .85, k * .7] : [k * .8, k * .88, k], i * 3);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(p, 3)); g.setAttribute('color', new THREE.BufferAttribute(c, 3));
+  scene.add(new THREE.Points(g, new THREE.PointsMaterial({size:1.3, vertexColors:true, sizeAttenuation:false, transparent:true, opacity:.85, depthWrite:false})));
+}
+
+// shared state
+const U = {
+  uMonth:{value:0}, uTime:{value:0}, uGrow:{value:0}, uCO2:{value:.5},
+  uSun:{value:new THREE.Vector3(1, 1, 1).normalize()},
+};
+
+// ---------- globe: two month textures blended ----------
+const globe = new THREE.Group(); scene.add(globe);
+const loader = new THREE.TextureLoader();
+const TEX = D.tex.map(src => { const t = loader.load(src); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; });
+const MASK = loader.load(D.mask); MASK.anisotropy = 8;
+const gU = {...U, uA:{value:TEX[0]}, uB:{value:TEX[1]}, uF:{value:0}, uMask:{value:MASK}};
+const globeMat = new THREE.ShaderMaterial({
+  uniforms:gU,
+  vertexShader:`varying vec2 vUv; varying vec3 vNW; varying vec3 vPW;
+    void main(){ vUv = uv; vNW = normalize(mat3(modelMatrix) * normal); vec4 w = modelMatrix * vec4(position,1.); vPW = w.xyz;
+      gl_Position = projectionMatrix * viewMatrix * w; }`,
+  fragmentShader:`uniform sampler2D uA, uB, uMask; uniform float uF; uniform vec3 uSun;
+    varying vec2 vUv; varying vec3 vNW; varying vec3 vPW;
+    void main(){
+      vec3 a = texture2D(uA, vUv).rgb, b = texture2D(uB, vUv).rgb;
+      vec3 col = mix(a, b, uF);
+      float mk = texture2D(uMask, vUv).r; float aa = fwidth(mk) * .8 + .02;
+      float ocean = 1. - smoothstep(.5 - aa, .5 + aa, mk);
+      vec3 V = normalize(cameraPosition - vPW);
+      float lam = max(dot(vNW, uSun), 0.);
+      vec3 land = col * (.30 + .85 * lam) * .78;
+      vec3 sea = vec3(.018, .045, .10) * (.45 + .9 * lam);
+      vec3 H = normalize(uSun + V);
+      sea += vec3(.55, .7, 1.) * pow(max(dot(vNW, H), 0.), 220.) * .3;
+      float fres = pow(1. - max(dot(vNW, V), 0.), 3.);
+      vec3 c = mix(land, sea, ocean) + vec3(.15, .35, .8) * fres * .35;
+      gl_FragColor = vec4(c, 1.);
+      #include <colorspace_fragment>
+    }`
+});
+globe.add(new THREE.Mesh(new THREE.SphereGeometry(R, 160, 120), globeMat));
+
+// atmosphere: blue when CO2 is low, warmer haze when CO2 is high
+const atmoMat = new THREE.ShaderMaterial({
+  uniforms:U,
+  vertexShader:`varying vec3 vN; varying vec3 vV; void main(){ vec4 mv = modelViewMatrix * vec4(position,1.); vN = normalize(normalMatrix*normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix*mv; }`,
+  fragmentShader:`uniform float uCO2; varying vec3 vN; varying vec3 vV;
+    void main(){ float f = pow(1. - abs(dot(vN, vV)), 2.4);
+      vec3 c = mix(vec3(.24, .55, 1.), vec3(1., .62, .30), smoothstep(.15, 1., uCO2) * .75);
+      float k = .55 + .45 * uCO2; gl_FragColor = vec4(c * f * 1.1 * k, f * k * .8); }`,
+  side:THREE.BackSide, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false
+});
+const atmo = new THREE.Mesh(new THREE.SphereGeometry(R * 1.14, 96, 64), atmoMat);
+globe.add(atmo);
+
+// ---------- CO2 motes: drifting amber specks, more of them when CO2 is high ----------
+{
+  const n = 4200, dir = new Float32Array(n * 3), rnd = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++){
+    const u = Math.random() * 2 - 1, th = Math.random() * 6.2832;
+    // bias toward the northern hemisphere, where the swing is strongest
+    const lat = Math.asin(Math.max(-1, Math.min(1, u * .6 + .35)));
+    dir.set([Math.cos(lat) * Math.cos(th), Math.sin(lat), Math.cos(lat) * Math.sin(th)], i * 3);
+    rnd.set([Math.random(), Math.random(), Math.random()], i * 3);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(dir, 3));
+  g.setAttribute('aRnd', new THREE.BufferAttribute(rnd, 3));
+  const m = new THREE.ShaderMaterial({
+    uniforms:U, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
+    vertexShader:`attribute vec3 aRnd; uniform float uTime, uCO2; varying float vA;
+      void main(){
+        float a = uTime * (.015 + .03 * aRnd.x) + aRnd.y * 6.2832;
+        float c = cos(a), s = sin(a);
+        vec3 d = vec3(position.x * c - position.z * s, position.y + .04 * sin(uTime * .3 + aRnd.z * 9.), position.x * s + position.z * c);
+        float r = ${R.toFixed(1)} * (1.025 + .11 * aRnd.z);
+        vec4 mv = modelViewMatrix * vec4(normalize(d) * r, 1.);
+        vA = smoothstep(aRnd.x - .08, aRnd.x, uCO2 * 1.05 - .05) * (.35 + .65 * aRnd.y);
+        gl_PointSize = (.8 + 1.4 * aRnd.z) * (34. / -mv.z) * ${Math.min(devicePixelRatio, 2).toFixed(1)};
+        gl_Position = projectionMatrix * mv; }`,
+    fragmentShader:`varying float vA;
+      void main(){ vec2 p = gl_PointCoord - .5; float d = dot(p, p); if (d > .25) discard;
+        gl_FragColor = vec4(vec3(1., .66, .32) * (1. - d * 4.), vA * (1. - d * 4.) * .55); }`
+  });
+  globe.add(new THREE.Points(g, m));
+}
+
+// ---------- 3D vegetation: one instanced cone "tree" per 0.5° cell (x2, jittered) ----------
+const bin = Uint8Array.from(atob(D.trees), c => c.charCodeAt(0));
+const dv = new DataView(bin.buffer), REC = 16, nCells = bin.length / REC, PER = 2, N = nCells * PER;
+const aDir = new Float32Array(N * 3), aN0 = new Float32Array(N * 4), aN1 = new Float32Array(N * 4), aN2 = new Float32Array(N * 4), aRnd = new Float32Array(N * 2);
+const toDir = (lat, lon) => {
+  const la = lat * Math.PI / 180, th = (lon + 180) / 360 * 2 * Math.PI;
+  return [-Math.cos(th) * Math.cos(la), Math.sin(la), Math.sin(th) * Math.cos(la)];
+};
+for (let c = 0, k = 0; c < nCells; c++){
+  const o = c * REC, lat = dv.getInt16(o, true) / 100, lon = dv.getInt16(o + 2, true) / 100;
+  for (let j = 0; j < PER; j++, k++){
+    aDir.set(toDir(lat + (Math.random() - .5) * .48, lon + (Math.random() - .5) * .48), k * 3);
+    for (let m = 0; m < 4; m++){
+      aN0[k * 4 + m] = bin[o + 4 + m] / 255; aN1[k * 4 + m] = bin[o + 8 + m] / 255; aN2[k * 4 + m] = bin[o + 12 + m] / 255;
+    }
+    aRnd.set([Math.random(), Math.random()], k * 2);
+  }
+}
+const cone = new THREE.ConeGeometry(1, 1, 6, 1, false); cone.translate(0, .5, 0);
+const tg = new THREE.InstancedBufferGeometry();
+tg.index = cone.index; tg.attributes.position = cone.attributes.position; tg.attributes.normal = cone.attributes.normal;
+tg.setAttribute('aDir', new THREE.InstancedBufferAttribute(aDir, 3));
+tg.setAttribute('aN0', new THREE.InstancedBufferAttribute(aN0, 4));
+tg.setAttribute('aN1', new THREE.InstancedBufferAttribute(aN1, 4));
+tg.setAttribute('aN2', new THREE.InstancedBufferAttribute(aN2, 4));
+tg.setAttribute('aRnd', new THREE.InstancedBufferAttribute(aRnd, 2));
+tg.instanceCount = N;
+const treeMat = new THREE.ShaderMaterial({
+  uniforms:U,
+  vertexShader:`attribute vec3 aDir; attribute vec4 aN0, aN1, aN2; attribute vec2 aRnd;
+    uniform float uMonth, uGrow;
+    varying float vNd; varying float vTip; varying vec3 vNW; varying vec3 vPW; varying float vJit;
+    float nd(int i){ return i < 4 ? aN0[i] : i < 8 ? aN1[i - 4] : aN2[i - 8]; }
+    void main(){
+      float m = mod(uMonth, 12.); int i0 = int(floor(m)); int i1 = int(mod(float(i0 + 1), 12.));
+      float f = smoothstep(0., 1., fract(m));
+      float v = mix(nd(i0), nd(i1), f);
+      vNd = v; vTip = position.y; vJit = aRnd.y;
+      float g = pow(smoothstep(.28, .88, v), 1.9);
+      float h = .40 * g * (.6 + .8 * aRnd.x) * uGrow + .003;
+      float rad = (.020 + .018 * aRnd.y) * (.55 + .45 * smoothstep(0., .5, g));
+      vec3 up = aDir;
+      vec3 t = normalize(cross(abs(up.y) < .99 ? vec3(0., 1., 0.) : vec3(1., 0., 0.), up));
+      vec3 b = cross(up, t);
+      vec3 p = up * (${R.toFixed(1)} * 1.0008) + t * position.x * rad + up * position.y * h + b * position.z * rad;
+      vec3 n = normalize(t * normal.x * h + up * normal.y * rad + b * normal.z * h);
+      vec4 w = modelMatrix * vec4(p, 1.);
+      vPW = w.xyz; vNW = normalize(mat3(modelMatrix) * n);
+      gl_Position = projectionMatrix * viewMatrix * w;
+    }`,
+  fragmentShader:`uniform vec3 uSun; varying float vNd; varying float vTip; varying vec3 vNW; varying vec3 vPW; varying float vJit;
+    void main(){
+      vec3 dry = vec3(.55, .46, .26), mid = vec3(.30, .52, .17), lush = vec3(.04, .28, .09);
+      vec3 c = mix(dry, mid, smoothstep(.15, .45, vNd));
+      c = mix(c, lush, smoothstep(.45, .85, vNd));
+      c *= .85 + .3 * vJit;
+      float lam = max(dot(vNW, uSun), 0.);
+      vec3 V = normalize(cameraPosition - vPW);
+      float rim = pow(1. - max(dot(vNW, V), 0.), 2.5);
+      vec3 col = c * (.22 + .8 * lam) * (.7 + .5 * vTip) + vec3(.55, .95, .55) * rim * .18 * smoothstep(.4, .8, vNd);
+      gl_FragColor = vec4(col, 1.);
+      #include <colorspace_fragment>
+    }`
+});
+const trees = new THREE.Mesh(tg, treeMat); trees.frustumCulled = false;
+globe.add(trees);
+
+// ---------- series ----------
+const G = S.ndvi.boreal_50_70N;                // greenness north of 50N, monthly
+const CO2 = S.mauna_loa_year, SW = S.mauna_loa_season_year;
+const gMin = Math.min(...G), gMax = Math.max(...G), sMin = Math.min(...SW), sMax = Math.max(...SW);
+const cyc = (arr, m) => { const i = Math.floor(m) % 12, f = m - Math.floor(m); const s = f * f * (3 - 2 * f); return arr[i] + (arr[(i + 1) % 12] - arr[i]) * s; };
+const corr = S.correlations['ndvi_boreal_50_70N__vs__mauna_loa'];
+document.getElementById('insight').innerHTML =
+  `CO₂ bottoms out <b>~${corr.best_lag} months</b> after the forests peak<br><span style="color:var(--muted)">correlation r = ${corr.best_r.toFixed(2)} at that delay</span>`;
+
+// ---------- chart ----------
+const chart = document.getElementById('chart'), cx = chart.getContext('2d');
+function drawChart(m){
+  const dpr = Math.min(devicePixelRatio, 2), w = chart.clientWidth, h = chart.clientHeight;
+  if (chart.width !== w * dpr){ chart.width = w * dpr; chart.height = h * dpr; }
+  cx.setTransform(dpr, 0, 0, dpr, 0, 0); cx.clearRect(0, 0, w, h);
+  const padL = 6, padR = 6, top = 10, bot = 20, W = w - padL - padR, H = h - top - bot;
+  const X = mm => padL + (mm / 12) * W;
+  // month grid
+  cx.font = '10px -apple-system,Helvetica,Arial'; cx.textAlign = 'center';
+  for (let i = 0; i < 12; i++){
+    cx.fillStyle = 'rgba(140,170,255,.07)'; cx.fillRect(X(i), top, 1, H);
+    cx.fillStyle = Math.floor(m) % 12 === i ? '#e9edf8' : '#8f9aba'; cx.fillText(MONTHS[i], X(i + .5), h - 5);
+  }
+  const line = (arr, lo, hi, col, fill) => {
+    cx.beginPath();
+    for (let k = 0; k <= 240; k++){ const mm = k / 20; const v = cyc(arr, (mm - .5 + 12) % 12); const y = top + H - (v - lo) / (hi - lo) * H * .86 - H * .07; k ? cx.lineTo(X(mm), y) : cx.moveTo(X(mm), y); }
+    if (fill){ const gr = cx.createLinearGradient(0, top, 0, top + H); gr.addColorStop(0, fill); gr.addColorStop(1, 'rgba(0,0,0,0)');
+      cx.save(); cx.lineTo(X(12), top + H); cx.lineTo(X(0), top + H); cx.closePath(); cx.fillStyle = gr; cx.fill(); cx.restore(); cx.beginPath();
+      for (let k = 0; k <= 240; k++){ const mm = k / 20; const v = cyc(arr, (mm - .5 + 12) % 12); const y = top + H - (v - lo) / (hi - lo) * H * .86 - H * .07; k ? cx.lineTo(X(mm), y) : cx.moveTo(X(mm), y); } }
+    cx.strokeStyle = col; cx.lineWidth = 2.2; cx.shadowColor = col; cx.shadowBlur = 8; cx.stroke(); cx.shadowBlur = 0;
+  };
+  line(G, gMin, gMax, '#7ee08a', 'rgba(126,224,138,.16)');
+  line(SW, sMin, sMax, '#ffb45c', null);
+  // playhead (data month i is plotted at the middle of its column)
+  const px = X((m + .5) % 12);
+  cx.fillStyle = 'rgba(127,212,255,.9)'; cx.fillRect(px - 1, top - 4, 2, H + 6);
+  cx.beginPath(); cx.arc(px, top - 4, 4, 0, 6.2832); cx.fill();
+}
+
+// ---------- time ----------
+let month = 0, playing = true, last = performance.now(), dragging = false, t0 = performance.now();
+const SEC_PER_MONTH = 2.4;
+const playBtn = document.getElementById('play');
+playBtn.onclick = () => { playing = !playing; playBtn.textContent = playing ? '❚❚' : '▶'; playBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play'); };
+const setFromX = e => { const r = chart.getBoundingClientRect(); month = ((Math.max(0, Math.min(1, (e.clientX - r.left - 6) / (r.width - 12))) * 12) - .5 + 12) % 12; };
+chart.addEventListener('pointerdown', e => { dragging = true; chart.setPointerCapture(e.pointerId); setFromX(e); });
+chart.addEventListener('pointermove', e => { if (dragging) setFromX(e); });
+chart.addEventListener('pointerup', () => dragging = false);
+addEventListener('keydown', e => { if (e.code === 'Space'){ e.preventDefault(); playBtn.click(); } });
+
+const SEASON = m => {
+  const i = Math.round(m) % 12;
+  if (i === 11 || i <= 1) return 'Winter: CO₂ builds up in the air';
+  if (i <= 4) return 'Spring: green-up spreading north';
+  if (i <= 7) return 'Summer: northern forests inhaling CO₂';
+  return 'Autumn: leaves fall, the north exhales';
+};
+
+const $ = id => document.getElementById(id);
+const tmpV = new THREE.Vector3();
+function resize(){
+  const w = innerWidth, h = innerHeight;
+  renderer.setSize(w, h, false); composer.setSize(w, h); bloom.setSize(w, h);
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+  camera.position.setLength(Math.max(camera.position.length(), w < 760 ? 34 : 24));
+}
+addEventListener('resize', resize); resize();
+
+function frame(now){
+  const dt = Math.min(.1, (now - last) / 1000); last = now;
+  if (playing && !dragging) month = (month + dt / SEC_PER_MONTH) % 12;
+  const t = (now - t0) / 1000;
+  U.uTime.value = t; U.uMonth.value = month;
+  U.uGrow.value = 1 - Math.pow(1 - Math.min(1, t / 2.8), 3);
+  const sw = cyc(SW, month); U.uCO2.value = (sw - sMin) / (sMax - sMin);
+  // light comes from the upper left of the view, so the visible side is always lit
+  U.uSun.value.copy(tmpV.set(-.55, .55, .65).normalize().applyQuaternion(camera.quaternion));
+  const i = Math.floor(month), f = month - i, s = f * f * (3 - 2 * f);
+  gU.uA.value = TEX[i]; gU.uB.value = TEX[(i + 1) % 12]; gU.uF.value = s;
+
+  const g = cyc(G, month), co2 = cyc(CO2, month);
+  $('month').textContent = MONTHS[Math.round(month) % 12] + ' 2021';
+  $('season').textContent = SEASON(month);
+  $('vG').textContent = g.toFixed(2); $('bG').style.width = ((g - gMin) / (gMax - gMin) * 100).toFixed(1) + '%';
+  $('vC').textContent = co2.toFixed(1) + ' ppm'; $('bC').style.width = (U.uCO2.value * 100).toFixed(1) + '%';
+  $('vD').textContent = (sw >= 0 ? '+' : '') + sw.toFixed(1) + ' ppm';
+  drawChart(month);
+
+  controls.update();
+  composer.render();
+  window.__ready = true;
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
