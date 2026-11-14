@@ -1,0 +1,5 @@
+a,b,escala,r_secundario,desfase_meses,r_primario_bruto,p,n,armonia,rupturas
+lights_india_igp,lights_delhi_ncr,anual,0.868,0,0.996,,,,
+precip_india_igp,temp_india_igp,anual,-0.584,0,-0.615,,,,
+precip_india_igp,solar_india_igp,mensual,-0.551,0,0.216,0.0,504.0,movimiento contrario (terceras),0.0
+precip_india_igp,solar_india_igp,anual,-0.517,0,-0.652,,,,

@@ -1,0 +1,9 @@
+disruptor,tipo,inicio,fin,variable,cambio,tendencia_antes_por_decada,tendencia_despues_por_decada,unidad,percentil,ventana_antes,ventana_despues,origen
+Quema extrema de rastrojos 2007,fuego,2007-10,2007-10,precip_india_igp,cambio de tendencia (de subir a bajar),1.0107,-1.7089,mm/day,0.974,2002-10→2007-09,2008-02→2013-01,"detectado en datos: fires_punjab, z≥2.5"
+Quema extrema de rastrojos 2014,fuego,2014-11,2014-11,solar_india_igp,aceleración (arranca una tendencia),0.4487,-1.8641,MJ/m^2/day,0.963,2009-11→2014-10,2015-03→2020-02,"detectado en datos: fires_punjab, z≥2.5"
+Crisis de humo de Delhi,humo,2016-10,2016-11,temp_india_igp,cambio de tendencia (de subir a bajar),2.5434,-2.673,C,0.995,2011-10→2016-09,2017-03→2022-02,catálogo curado (verificar)
+Crisis de humo de Delhi,humo,2016-10,2016-11,fires_punjab,cambio de tendencia (de bajar a subir),-1233.2119,1267.5608,detecciones/mes,0.96,2011-10→2016-09,2017-03→2022-02,catálogo curado (verificar)
+Emergencia de aire Delhi,humo,2017-11,2017-11,aod_india_igp,cambio de tendencia (de subir a bajar),0.1771,-0.1011,dimensionless,1.0,2012-11→2017-10,2018-03→2023-02,catálogo curado (verificar)
+COVID-19: confinamientos globales,sociedad,2020-03,2020-08,fires_punjab,aceleración (arranca una tendencia),-424.6026,-3514.7717,detecciones/mes,0.983,2015-03→2020-02,2020-12→2025-11,catálogo curado (verificar)
+Quema extrema de rastrojos 2020,fuego,2020-11,2020-11,temp_india_igp,freno (la tendencia se detiene),-4.0607,0.5413,C,0.957,2015-11→2020-10,2021-03→2025-12,"detectado en datos: fires_punjab, z≥2.5"
+Ola de calor India-Pakistán,calor,2022-03,2022-05,fires_punjab,cambio de tendencia (de subir a bajar),1267.5608,-3152.0555,detecciones/mes,0.964,2017-03→2022-02,2022-09→2025-12,catálogo curado (verificar)

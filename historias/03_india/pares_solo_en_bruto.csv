@@ -1,0 +1,16 @@
+a,b,escala,r_primario_bruto,r_secundario,motivo
+aod_india_igp,precip_india_igp,mensual,0.595,-0.099,estación o tendencia compartida
+fires_punjab,precip_india_igp,mensual,-0.561,-0.167,estación o tendencia compartida
+precip_india_igp,temp_india_igp,mensual,0.57,-0.384,estación o tendencia compartida
+wind_india_igp,temp_india_igp,mensual,0.702,0.113,estación o tendencia compartida
+wind_india_igp,solar_india_igp,mensual,0.738,0.237,estación o tendencia compartida
+temp_india_igp,solar_india_igp,mensual,0.807,0.281,estación o tendencia compartida
+lights_india_igp,aod_india_igp,anual,0.91,-0.03,tendencia compartida
+lights_india_igp,precip_india_igp,anual,0.545,0.126,tendencia compartida
+lights_india_igp,solar_india_igp,anual,-0.901,-0.114,tendencia compartida
+aod_india_igp,precip_india_igp,anual,0.546,0.007,tendencia compartida
+aod_india_igp,solar_india_igp,anual,-0.911,-0.415,tendencia compartida
+aod_india_igp,lights_delhi_ncr,anual,0.906,0.019,tendencia compartida
+precip_india_igp,lights_delhi_ncr,anual,0.56,0.002,tendencia compartida
+wind_india_igp,solar_india_igp,anual,0.731,0.321,tendencia compartida
+solar_india_igp,lights_delhi_ncr,anual,-0.9,-0.051,tendencia compartida

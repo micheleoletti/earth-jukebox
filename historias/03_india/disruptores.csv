@@ -1,0 +1,38 @@
+disruptor,tipo,inicio,fin,fuerza_sigma,giros_de_tendencia,origen
+Erupción de El Chichón,volcán,1982-04,1983-12,0.21,0,catálogo curado (verificar)
+El Niño 1982–83 (muy fuerte),enso+,1982-05,1983-06,0.45,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+La Niña 1984–85 (moderado),enso-,1984-10,1985-06,0.48,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+El Niño 1986–88 (moderado),enso+,1986-09,1988-01,0.76,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+La Niña 1988–89 (fuerte),enso-,1988-05,1989-05,0.54,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+Erupción del Pinatubo,volcán,1991-06,1993-06,0.42,0,catálogo curado (verificar)
+El Niño 1991–92 (fuerte),enso+,1991-06,1992-06,0.37,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+La Niña 1995–96 (moderado),enso-,1995-08,1996-03,0.58,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+El Niño 1997–98 (muy fuerte),enso+,1997-05,1998-04,0.53,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+La Niña 1998–00 (fuerte),enso-,1998-07,2000-06,0.21,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+El Niño 2002–03 (moderado),enso+,2002-07,2003-02,5.12,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+Episodio de aerosoles 2002,humo,2002-07,2002-07,5.12,0,"detectado en datos: aod_india_igp, z≥2.5"
+Quema extrema de rastrojos 2005,fuego,2005-10,2005-10,3.36,0,"detectado en datos: fires_punjab, z≥2.5"
+La Niña 2007–08 (fuerte),enso-,2007-08,2008-06,3.75,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+Quema extrema de rastrojos 2007,fuego,2007-10,2007-10,3.75,1,"detectado en datos: fires_punjab, z≥2.5"
+El Niño 2009–10 (fuerte),enso+,2009-07,2010-03,1.66,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+La Niña 2010–11 (fuerte),enso-,2010-06,2011-05,1.74,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+La Niña 2011–12 (moderado),enso-,2011-08,2012-02,2.1,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+El Niño 2014–16 (muy fuerte),enso+,2014-10,2016-05,3.15,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+Quema extrema de rastrojos 2014,fuego,2014-11,2014-11,3.15,1,"detectado en datos: fires_punjab, z≥2.5"
+Ola de calor India,calor,2015-05,2015-06,1.32,0,catálogo curado (verificar)
+Episodio de aerosoles 2015,humo,2015-12,2015-12,2.59,0,"detectado en datos: aod_india_igp, z≥2.5"
+Crisis de humo de Delhi,humo,2016-10,2016-11,2.65,2,catálogo curado (verificar)
+Quema extrema de rastrojos 2016,fuego,2016-11,2016-11,2.65,0,"detectado en datos: fires_punjab, z≥2.5"
+Emergencia de aire Delhi,humo,2017-11,2017-11,0.38,1,catálogo curado (verificar)
+El Niño 2018–19 (moderado),enso+,2018-09,2019-06,2.48,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+Humo récord Delhi,humo,2019-11,2019-11,2.43,0,catálogo curado (verificar)
+Confinamiento COVID India,sociedad,2020-03,2020-06,0.86,0,catálogo curado (verificar)
+COVID-19: confinamientos globales,sociedad,2020-03,2020-08,3.04,1,catálogo curado (verificar)
+La Niña 2020–21 (moderado),enso-,2020-09,2021-04,3.04,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+Quema extrema de rastrojos 2020,fuego,2020-11,2020-11,3.04,1,"detectado en datos: fires_punjab, z≥2.5"
+Quema extrema de rastrojos 2021,fuego,2021-11,2021-11,6.24,0,"detectado en datos: fires_punjab, z≥2.5"
+Hunga Tonga (vapor estratosférico),volcán,2022-01,2023-06,2.1,0,catálogo curado (verificar)
+Ola de calor India-Pakistán,calor,2022-03,2022-05,1.21,1,catálogo curado (verificar)
+El Niño 2023–24 (fuerte),enso+,2023-06,2024-04,3.94,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
+Episodio de aerosoles 2023,humo,2023-11,2024-01,3.94,0,"detectado en datos: aod_india_igp, z≥2.5"
+El Niño 2026–26 (muy fuerte),enso+,2026-05,2026-09,0.0,0,"derivado de NOAA ONI (≥0,5 °C ≥5 trimestres)"
