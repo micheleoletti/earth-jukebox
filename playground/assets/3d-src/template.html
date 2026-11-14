@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jukebox Globe Time Machine</title>
+<style>
+:root{
+  --bg:#02040a; --panel:rgba(9,13,25,.82); --line:rgba(140,170,255,.16);
+  --text:#e9edf8; --muted:#8f9aba; --accent:#7fd4ff; --warm:#ffb45c;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
+  font:14px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;overflow:hidden}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.glass{background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+
+/* selector */
+#sel{position:fixed;left:16px;top:16px;width:250px;z-index:3;border-radius:14px;padding:10px 8px;max-height:calc(100% - 170px);overflow:auto}
+#sel h1{font-size:13px;margin:2px 8px 8px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.ds{display:flex;gap:9px;align-items:center;padding:7px 8px;border-radius:9px;cursor:pointer;user-select:none;width:100%;
+  background:none;border:0;color:inherit;font:inherit;text-align:left}
+.ds:hover{background:rgba(255,255,255,.06)}
+.ds.on{background:rgba(127,212,255,.15)}
+.ds .dot{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 9px currentColor}
+.ds .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ds .tag{font-size:10px;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:0 5px;white-space:nowrap}
+.ds.live .tag{color:#0b0f1a;background:var(--accent);border-color:var(--accent)}
+#sel .hint{font-size:11px;color:var(--muted);margin:8px 8px 2px;border-top:1px solid var(--line);padding-top:8px}
+
+/* date readout */
+#clock{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:3;text-align:center;pointer-events:none}
+#date{font:700 54px/1 "SF Mono",ui-monospace,Menlo,monospace;letter-spacing:.02em;font-variant-numeric:tabular-nums;
+  text-shadow:0 0 22px rgba(127,212,255,.35);transition:color .3s, text-shadow .3s, filter .2s}
+#date.jump{color:#bfe9ff;filter:blur(.6px);text-shadow:0 0 30px rgba(127,212,255,.95),0 0 6px #fff}
+#date.land{animation:land .7s ease-out}
+#date.unknown{color:#ffa0d0;text-shadow:0 0 26px rgba(255,120,190,.6)}
+@keyframes land{0%{transform:scale(1.12);text-shadow:0 0 50px #fff}100%{transform:scale(1)}}
+#status{margin-top:6px;font-size:13px;color:var(--muted);min-height:18px}
+#status b{color:var(--text);font-weight:600}
+.badge{display:inline-block;font-size:11px;padding:1px 7px;border-radius:6px;border:1px solid currentColor;margin-left:6px;vertical-align:1px}
+
+/* scrubber */
+#scrub{position:fixed;left:282px;right:412px;bottom:14px;z-index:3;border-radius:14px;padding:8px 10px 6px}
+#scrub canvas{width:100%;height:118px;display:block;cursor:ew-resize;touch-action:none}
+
+/* info panel */
+#info{position:fixed;right:16px;top:16px;bottom:14px;width:380px;z-index:3;border-radius:14px;overflow:auto;
+  transform:translateX(calc(100% + 30px));transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+#info.open{transform:none}
+#info img{width:100%;display:block;border-radius:14px 14px 0 0;background:#000;cursor:zoom-in}
+#info .body{padding:14px 16px 18px}
+#info h2{margin:0 0 2px;font-size:19px}
+#info .id{color:var(--muted);font-size:12px}
+#info dl{margin:12px 0 0;display:grid;grid-template-columns:84px 1fr;gap:7px 10px;font-size:13px}
+#info dt{color:var(--muted)} #info dd{margin:0}
+#info .sound{margin-top:12px;padding:10px 12px;border-radius:10px;background:rgba(255,180,92,.09);border:1px solid rgba(255,180,92,.25)}
+#info .sound b{color:var(--warm)}
+#info .where{margin-top:10px;font-size:12px;color:var(--muted)}
+#info a{color:var(--accent)}
+#info .x{position:absolute;right:10px;top:10px}
+button.b{background:rgba(127,212,255,.12);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:inherit;font-size:12px;cursor:pointer}
+button.b:hover{background:rgba(127,212,255,.24)}
+#zoom{position:fixed;inset:0;z-index:10;background:rgba(0,0,0,.93);display:none;align-items:center;justify-content:center;cursor:zoom-out}
+#zoom img{max-width:96vw;max-height:94vh}
+#loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:9;color:var(--muted);background:var(--bg)}
+#infoBtn{display:none}
+
+@media (max-width: 860px){
+  #sel{left:0;right:0;top:0;width:auto;border-radius:0;border-width:0 0 1px;padding:8px;display:flex;gap:6px;overflow-x:auto;max-height:none}
+  #sel h1,#sel .hint{display:none}
+  .ds{width:auto;flex:none;border:1px solid var(--line);padding:5px 9px}
+  .ds .nm{overflow:visible}
+  #clock{top:58px}
+  #date{font-size:34px}
+  #status{font-size:12px;max-width:92vw}
+  #scrub{left:8px;right:8px;bottom:8px;padding:6px}
+  #scrub canvas{height:104px}
+  #info{left:8px;right:8px;top:auto;bottom:140px;width:auto;max-height:46%;transform:translateY(calc(100% + 160px))}
+  #info.open{transform:none}
+  #info.min{transform:translateY(calc(100% + 160px))}
+  #infoBtn{display:block;position:fixed;right:10px;bottom:146px;z-index:4}
+}
+</style>
+<script type="importmap">
+{"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+</head>
+<body>
+<div id="loading">Spinning up the Earth...</div>
+<canvas id="c"></canvas>
+<nav id="sel" class="glass"><h1>Datasets</h1></nav>
+<div id="clock"><div id="date">----</div><div id="status"></div></div>
+<div id="scrub" class="glass"><canvas id="sc"></canvas></div>
+<aside id="info" class="glass"></aside>
+<button id="infoBtn" class="b">Info</button>
+<div id="zoom"><img alt=""></div>
+
+<script>window.IMG = /*__IMAGES__*/;</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ---------- time helpers ----------
+const Y0 = 2006, Y1 = 2027;   // scrubber covers 2006-01-01 .. 2026-12-31
+function ymd(y, m = 1, d = 1, h = 0){ return y + (Date.UTC(y, m - 1, d, h) - Date.UTC(y, 0, 1)) / (Date.UTC(y + 1, 0, 1) - Date.UTC(y, 0, 1)); }
+function toDate(t){
+  const y = Math.floor(t), a = Date.UTC(y, 0, 1), b = Date.UTC(y + 1, 0, 1);
+  return new Date(Math.round((a + (t - y) * (b - a)) / 60000) * 60000);
+}
+const pad = n => String(n).padStart(2, '0');
+function fmt(t, prec = 'day'){
+  const d = toDate(t);
+  if (prec === 'year') return String(d.getUTCFullYear());
+  if (prec === 'month') return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`;
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+}
+const DAY = 1 / 365.25;
+const FAST = /fast/.test(location.hash);   // testing aid: skip animations
+
+// ---------- data (NASA SVS API metadata) ----------
+const D = [
+  {id:'5313', name:'Night Lights 2012 to 2023', short:'Night Lights', color:'#ffd27a',
+   kind:'range', start:ymd(2012), end:ymd(2023,12,31), prec:'year', step:1, stepLabel:'1 year',
+   window:'2012 to 2023',
+   what:'Annual average city lights from VIIRS, then a change map: purple means more light, orange means less.',
+   sound:'Brightness sets note density; one chord per year.',
+   globe:'globe_5313', globeGain:1.8, globeSrc:'2023 annual composite, flat global frame (SVS 5276, same series).'},
+  {id:'3912', name:'Global Sea Surface Currents and Temperature (ECCO2)', short:'ECCO2 Currents + SST', color:'#ff7a45',
+   kind:'range', start:ymd(2007,3,25), end:ymd(2008,3,3), prec:'day', step:DAY, stepLabel:'about daily (unverified)',
+   window:'2007-03-25 to 2008-03-03',
+   what:'Ocean surface currents from the ECCO2 model, coloured by sea surface temperature.',
+   sound:'Flow speed and direction drive slowly evolving pads.',
+   globe:'globe_3912', globeSrc:'flat global frame from this release (2048 x 1024).'},
+  {id:'5011', name:'ISS Lightning 2017 to 2023 (LIS)', short:'ISS Lightning', color:'#c9a2ff',
+   kind:'range', start:ymd(2017,1), end:ymd(2023,7,31), prec:'month', step:10 * DAY, stepLabel:'10-day rolling window',
+   window:'2017-01 to 2023-07',
+   what:'Lightning flashes seen by the Lightning Imaging Sensor on the ISS, shown as a 10-day rolling window.',
+   sound:'A percussion hit per flash.',
+   globe:'globe_5011', globeSrc:'Science On a Sphere flat frame from this release.'},
+  {id:'5425', name:'Perpetual Ocean 2', short:'Perpetual Ocean 2', color:'#4fc3ff',
+   kind:'range', start:ymd(2021,1,15), end:ymd(2023,12,25), prec:'day', step:DAY, stepLabel:'about daily (unverified); trails 3 to 6 days',
+   window:'2021-01-15 to 2023-12-25',
+   what:'ECCO2 surface currents as particle trails: Kuroshio, Agulhas, Gulf Stream.',
+   sound:'Flowing strings that follow the currents.',
+   noGlobe:'Regional close-up renders, no flat global frame: shown on the floating panel.'},
+  {id:'5196', name:'DYAMOND CO2', short:'DYAMOND CO2', color:'#ff5d8f',
+   kind:'range', start:ymd(2020,1), end:ymd(2020,3,31), prec:'month', step:DAY / 4, stepLabel:'sub-daily (model)',
+   window:'2020-01 to 2020-03',
+   what:'Carbon dioxide (ppm) moving through the atmosphere in a high-resolution model run.',
+   sound:'A rising drone that follows CO2 concentration.',
+   noGlobe:'Released as rendered globe and hyperwall views, no flat global frame: shown on the floating panel.'},
+  {id:'4950', name:'GEDI Forest Height', short:'GEDI Forest Height', color:'#7ee081',
+   kind:'still', start:ymd(2019,4), end:ymd(2020,4,30), prec:'month', stepLabel:'static composite',
+   window:'data 2019-04 to 2020-04, one composite image',
+   what:'Forest canopy height measured by the GEDI lidar on the ISS, combined into one global composite.',
+   sound:'Canopy height becomes pitch; scan across the map like a melody.',
+   noGlobe:'Global frames are already rendered globes, not flat maps: shown on the floating panel.'},
+  {id:'5669', name:'GEOS Aerosols', short:'GEOS Aerosols', color:'#a8ff60',
+   kind:'still', start:ymd(2025,8,19,20), prec:'day', stepLabel:'single still',
+   window:'2025-08-19 20:00 UTC',
+   what:'Smoke, dust, sea salt and sulfate in the GEOS model, each in its own colour.',
+   sound:'One instrument per aerosol type; scan across space.',
+   noGlobe:'The still is itself a rendered globe view: shown on the floating panel.'},
+  {id:'5533', name:'Air Quality Model Runs (GEOS-CF)', short:'Air Quality', color:'#ffa0d0',
+   kind:'unknown', stepLabel:'unknown', window:'date unknown',
+   what:'Model fields for PM2.5, ozone, carbon monoxide and nitrogen oxides.',
+   sound:'Map each pollutant palette to a chord.',
+   noGlobe:'Sphere render, not a flat map: shown on the floating panel.'},
+  {id:'4960', name:'Atmospheric River 3D', short:'Atmospheric River', color:'#6fe7d6',
+   kind:'unknown', stepLabel:'hourly (single model event)', window:'date unknown (one model event)',
+   what:'One atmospheric river event in 3D from a model, stepped hourly.',
+   sound:'Swelling textures as moisture flows in.',
+   noGlobe:'3D regional render: shown on the floating panel.'},
+  {id:'13786', name:'Caldwell 73 (reference)', short:'Caldwell 73', color:'#bdbdbd',
+   kind:'reference', stepLabel:'n/a', window:'not a time series',
+   what:'An existing NASA sonification of a galaxy image, kept as a reference for how pictures can sound.',
+   sound:'Reference only: listen to how they mapped image to sound.',
+   noGlobe:'Not Earth data: shown on the floating panel.'}
+];
+const OVERLAP = [ymd(2021,1,15), ymd(2023,7,31)];
+const isLive = (d, t) => d.kind === 'range' ? (t >= d.start && t <= d.end) : d.kind === 'still' ? Math.abs(t - d.start) < 20 * DAY || (d.end && t >= d.start && t <= d.end) : false;
+
+// ---------- renderer / scene ----------
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x02040a);
+const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 4000);
+camera.position.set(0, 5, 40);
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true; controls.dampingFactor = .06;
+controls.enablePan = false; controls.minDistance = 13; controls.maxDistance = 80;
+controls.autoRotate = true; controls.autoRotateSpeed = .35;
+
+// starfield (two layers, the near one streaks during a time jump)
+function stars(n, rMin, rMax, size){
+  const p = new Float32Array(n * 3), c = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++){
+    const r = rMin + Math.random() * (rMax - rMin), th = Math.random() * 6.2832, ph = Math.acos(2 * Math.random() - 1);
+    p.set([r * Math.sin(ph) * Math.cos(th), r * Math.cos(ph), r * Math.sin(ph) * Math.sin(th)], i * 3);
+    const k = .5 + Math.random() * .5, w = Math.random();
+    c.set(w < .15 ? [k, k * .85, k * .7] : [k * .8, k * .88, k], i * 3);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(p, 3));
+  g.setAttribute('color', new THREE.BufferAttribute(c, 3));
+  return new THREE.Points(g, new THREE.PointsMaterial({size, vertexColors:true, sizeAttenuation:false, transparent:true, opacity:.9, depthWrite:false}));
+}
+const farStars = stars(5000, 900, 1500, 1.3), nearStars = stars(900, 120, 400, 2.0);
+scene.add(farStars, nearStars);
+
+// ---------- globe with dissolve-swap shader ----------
+const R = 8;
+const globe = new THREE.Group(); scene.add(globe);
+const gUni = {
+  uA:{value:null}, uB:{value:null}, uMix:{value:0}, uTintA:{value:new THREE.Vector3(1,1,1)}, uTintB:{value:new THREE.Vector3(1,1,1)},
+  uEdge:{value:new THREE.Color('#7fd4ff')}, uTime:{value:0}, uDim:{value:1}
+};
+const globeMat = new THREE.ShaderMaterial({
+  uniforms:gUni,
+  vertexShader:`varying vec2 vUv; varying vec3 vN; varying vec3 vV;
+    void main(){ vUv = uv; vec4 mv = modelViewMatrix * vec4(position,1.); vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }`,
+  fragmentShader:`uniform sampler2D uA, uB; uniform float uMix, uTime, uDim; uniform vec3 uTintA, uTintB, uEdge;
+    varying vec2 vUv; varying vec3 vN; varying vec3 vV;
+    float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+    void main(){
+      vec3 a = texture2D(uA, vUv).rgb * uTintA;
+      vec3 b = texture2D(uB, vUv).rgb * uTintB;
+      float h = hash(floor(vUv * vec2(360., 180.)));
+      float p = (1. - vUv.y) * .55 + h * .45;
+      float t = uMix * 1.12 - .06;
+      float m = 1. - smoothstep(t - .03, t, p);
+      float edge = (1. - smoothstep(0., .05, abs(p - t))) * step(.001, uMix) * step(uMix, .999);
+      vec3 col = mix(a, b, m) + uEdge * edge * 1.4;
+      float lam = clamp(dot(vN, vV), 0., 1.);
+      col *= (.62 + .38 * lam) * uDim;
+      gl_FragColor = vec4(col, 1.);
+      #include <colorspace_fragment>
+    }`
+});
+const globeMesh = new THREE.Mesh(new THREE.SphereGeometry(R, 128, 96), globeMat);
+globe.add(globeMesh);
+const atmo = new THREE.Mesh(new THREE.SphereGeometry(R * 1.13, 64, 48), new THREE.ShaderMaterial({
+  uniforms:{uC:{value:new THREE.Color('#3d8bff')}, uK:{value:1}},
+  vertexShader:`varying vec3 vN; varying vec3 vV; void main(){ vec4 mv = modelViewMatrix * vec4(position,1.); vN = normalize(normalMatrix*normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix*mv; }`,
+  fragmentShader:`uniform vec3 uC; uniform float uK; varying vec3 vN; varying vec3 vV;
+    void main(){ float f = pow(1. - abs(dot(vN, vV)), 2.6); gl_FragColor = vec4(uC * f * 1.6 * uK, f * uK); }`,
+  side:THREE.BackSide, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false
+}));
+globe.add(atmo);
+const grat = new THREE.LineSegments(new THREE.WireframeGeometry(new THREE.SphereGeometry(R * 1.003, 24, 12)),
+  new THREE.LineBasicMaterial({color:0x4a7fd0, transparent:true, opacity:.10, depthWrite:false}));
+globe.add(grat);
+globe.rotation.z = .41 * .0; // keep maps upright for reading
+
+// ---------- floating image panel (for items that are not flat world maps) ----------
+const floatG = new THREE.Group(); scene.add(floatG); floatG.visible = false;
+const floatMat = new THREE.MeshBasicMaterial({transparent:true, opacity:0, side:THREE.DoubleSide, depthWrite:false});
+const floatMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), floatMat);
+const frameMat = new THREE.MeshBasicMaterial({color:0x7fd4ff, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false});
+const frameMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), frameMat);
+frameMesh.position.z = -.02;
+floatG.add(frameMesh, floatMesh);
+let floatCap = null, floatTarget = 0, floatOpacity = 0;
+function textSprite(text, size, color){
+  const fs = 56, padd = 20, c = document.createElement('canvas'), g = c.getContext('2d');
+  g.font = `600 ${fs}px -apple-system,Helvetica,Arial,sans-serif`;
+  c.width = Math.ceil(g.measureText(text).width) + padd * 2; c.height = fs + padd * 2;
+  g.font = `600 ${fs}px -apple-system,Helvetica,Arial,sans-serif`;
+  g.fillStyle = color; g.textBaseline = 'middle'; g.fillText(text, padd, c.height / 2 + 2);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({map:t, transparent:true, depthWrite:false, opacity:0}));
+  s.scale.set(size * c.width / c.height, size, 1); return s;
+}
+
+// ---------- textures ----------
+const loader = new THREE.TextureLoader();
+const TEX = {};
+const loadTex = key => new Promise((res, rej) => loader.load(window.IMG[key], t => {
+  t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); TEX[key] = t; res(t);
+}, undefined, rej));
+const BASE_KEY = 'globe_5011';                           // dim base Earth: grey land from the SOS lightning frame
+const BASE_TINT = new THREE.Vector3(.36, .48, .72);
+const ONE = new THREE.Vector3(1, 1, 1);
+let globeKey = BASE_KEY;
+function swapGlobe(key, tint){
+  if (key === globeKey && gUni.uTintA.value.equals(tint)) return;
+  if (FAST){ gUni.uA.value = TEX[key]; gUni.uTintA.value.copy(tint); globeKey = key; return; }
+  gUni.uB.value = TEX[key]; gUni.uTintB.value.copy(tint); gUni.uMix.value = 0;
+  swap = {s:performance.now(), dur:FAST ? 1 : 1300, key, tint:tint.clone()};
+}
+let swap = null;
+
+// ---------- UI ----------
+const sel = document.getElementById('sel');
+const dateEl = document.getElementById('date'), statusEl = document.getElementById('status');
+const info = document.getElementById('info'), zoom = document.getElementById('zoom');
+function tagFor(d){
+  if (d.kind === 'unknown') return '?';
+  if (d.kind === 'reference') return 'ref';
+  if (d.kind === 'still') return 'still';
+  const a = toDate(d.start).getUTCFullYear(), b = toDate(d.end).getUTCFullYear();
+  return a === b ? String(a) : `${a}-${String(b).slice(2)}`;
+}
+sel.insertAdjacentHTML('beforeend', D.map(d => `<button class="ds" data-id="${d.id}"><span class="dot" style="background:${d.color};color:${d.color}"></span><span class="nm">${d.short}</span><span class="tag">${tagFor(d)}</span></button>`).join('')
+  + `<div class="hint">Pick a dataset: the clock jumps to its start and its imagery lands on the globe. Drag the time bar to see which datasets are live at any date.</div>`);
+sel.addEventListener('click', e => { const b = e.target.closest('.ds'); if (b) select(D.find(d => d.id === b.dataset.id)); });
+document.getElementById('infoBtn').onclick = () => info.classList.toggle('min');
+zoom.onclick = () => zoom.style.display = 'none';
+addEventListener('keydown', e => { if (e.key === 'Escape'){ zoom.style.display = 'none'; select(null); } });
+
+let curT = ymd(2026, 11, 14);
+let selected = null, jump = null, curPrec = 'day', unknownMode = false;
+
+function renderDate(){
+  if (unknownMode){ dateEl.textContent = '????-??-??'; return; }
+  dateEl.textContent = fmt(curT, jump ? 'day' : curPrec);
+}
+function setStatus(){
+  const d = selected;
+  if (!d){ statusEl.innerHTML = 'Base Earth. Pick a dataset to time-jump.'; return; }
+  if (jump){ statusEl.innerHTML = `time jump to <b style="color:${d.color}">${d.short}</b>...`; return; }
+  if (d.kind === 'range') statusEl.innerHTML = `<b style="color:${d.color}">${d.short}</b> ${d.window} <span class="badge" style="color:${d.color}">step: ${d.stepLabel}</span>`;
+  else if (d.kind === 'still') statusEl.innerHTML = `<b style="color:${d.color}">${d.short}</b> ${d.window} <span class="badge" style="color:#ffcf8f">still / no time axis</span>`;
+  else if (d.kind === 'unknown') statusEl.innerHTML = `<b style="color:${d.color}">${d.short}</b> <span class="badge" style="color:#ffa0d0">date unknown</span>`;
+  else statusEl.innerHTML = `<b style="color:${d.color}">${d.short}</b> <span class="badge">reference, no date</span>`;
+}
+function updateLive(){
+  sel.querySelectorAll('.ds').forEach(b => { const d = D.find(x => x.id === b.dataset.id); b.classList.toggle('live', !unknownMode && isLive(d, curT)); });
+}
+
+function select(d){
+  selected = d;
+  sel.querySelectorAll('.ds').forEach(b => b.classList.toggle('on', !!d && b.dataset.id === d.id));
+  if (!d){
+    info.classList.remove('open'); unknownMode = false; dateEl.classList.remove('unknown');
+    swapGlobe(BASE_KEY, BASE_TINT); floatTarget = 0; setStatus(); renderDate(); drawScrub(); updateLive(); return;
+  }
+  showInfo(d);
+  floatTarget = 0;
+  if (d.kind === 'unknown' || d.kind === 'reference'){
+    jump = null; unknownMode = true; dateEl.classList.add('unknown');
+    dateEl.classList.remove('land'); void dateEl.offsetWidth; dateEl.classList.add('land');
+    swapGlobe(BASE_KEY, BASE_TINT); showFloat(d);
+    setStatus(); renderDate(); drawScrub(); updateLive(); return;
+  }
+  unknownMode = false; dateEl.classList.remove('unknown');
+  const from = curT, to = d.start, dist = Math.abs(to - from);
+  jump = {from, to, s:performance.now(), dur:FAST ? 1 : Math.min(2600, 900 + dist * 140), d};
+  dateEl.classList.add('jump');
+  setStatus(); drawScrub();
+  if (FAST) landJump();
+}
+function landJump(){
+  const d = jump.d; jump = null; curT = d.start; curPrec = d.prec;
+  dateEl.classList.remove('jump'); dateEl.classList.remove('land'); void dateEl.offsetWidth; dateEl.classList.add('land');
+  if (d.globe){ gUni.uEdge.value.set(d.color); swapGlobe(d.globe, d.globeGain ? new THREE.Vector3(1,1,1).multiplyScalar(d.globeGain) : ONE); }
+  else { swapGlobe(BASE_KEY, BASE_TINT); showFloat(d); }
+  setStatus(); renderDate(); drawScrub(); updateLive();
+}
+function showFloat(d){
+  const t = TEX['card_' + d.id], a = t.image.width / t.image.height;
+  const h = a > 2.5 ? 5.2 : 8.4, w = h * a > 15 ? 15 : h * a, hh = w / a;
+  floatMat.map = t; floatMat.needsUpdate = true;
+  floatMesh.scale.set(w, hh, 1); frameMesh.scale.set(w + .35, hh + .35, 1); frameMat.color.set(d.color);
+  if (floatCap){ floatG.remove(floatCap); floatCap.material.map.dispose(); }
+  floatCap = textSprite(`${d.short}: not a flat world map, shown as an image`, .62, d.color);
+  floatCap.position.set(0, -hh / 2 - .75, 0); floatG.add(floatCap);
+  floatG.userData.w = w; floatTarget = 1; floatG.visible = true;
+}
+function showInfo(d){
+  const where = d.globe ? `On the globe: ${d.globeSrc}` : d.noGlobe;
+  const when = d.kind === 'still' ? `${d.window} <span class="badge" style="color:#ffcf8f">still / no time axis</span>` :
+               d.kind === 'unknown' ? `${d.window}` : d.window;
+  info.innerHTML = `<button class="b x" aria-label="Close">Close</button>
+    <img src="${window.IMG['card_' + d.id]}" alt="${d.name} preview">
+    <div class="body">
+      <h2 style="color:${d.color}">${d.name}</h2>
+      <div class="id">SVS ${d.id}</div>
+      <dl>
+        <dt>Represents</dt><dd>${d.what}</dd>
+        <dt>Window</dt><dd>${when}</dd>
+        <dt>Time step</dt><dd>${d.stepLabel}</dd>
+      </dl>
+      <div class="sound"><b>Sound idea.</b> ${d.sound}</div>
+      <div class="where">${where}</div>
+      <p style="margin:12px 0 0"><a href="https://svs.gsfc.nasa.gov/${d.id}" target="_blank" rel="noopener">Open SVS ${d.id} on svs.gsfc.nasa.gov</a></p>
+    </div>`;
+  info.classList.add('open'); info.classList.toggle('min', innerWidth <= 860);   // phones: globe first, Info button opens the sheet
+  info.querySelector('.x').onclick = () => select(null);
+  info.querySelector('img').onclick = () => { zoom.querySelector('img').src = window.IMG['card_' + d.id]; zoom.style.display = 'flex'; };
+}
+
+// ---------- scrubber (canvas) ----------
+const sc = document.getElementById('sc'), sg = sc.getContext('2d');
+const lanes = D.filter(d => d.kind === 'range' || d.kind === 'still');
+let SW = 0, SH = 0;
+const PADX = 14;
+const xOf = t => PADX + (t - Y0) / (Y1 - Y0) * (SW - PADX * 2);
+const tOf = x => Y0 + (x - PADX) / (SW - PADX * 2) * (Y1 - Y0);
+function sizeScrub(){
+  const r = sc.getBoundingClientRect(), dpr = Math.min(devicePixelRatio, 2);
+  SW = r.width; SH = r.height; sc.width = SW * dpr; sc.height = SH * dpr; sg.setTransform(dpr, 0, 0, dpr, 0, 0); drawScrub();
+}
+function drawScrub(){
+  if (!SW) return;
+  const g = sg; g.clearRect(0, 0, SW, SH);
+  const axisY = 30, laneTop = 44, laneH = Math.max(5, Math.min(8, (SH - laneTop - 8) / lanes.length - 2));
+  const narrow = SW < 520;
+  // overlap band
+  const ox0 = xOf(OVERLAP[0]), ox1 = xOf(OVERLAP[1]);
+  const grd = g.createLinearGradient(0, 0, 0, SH); grd.addColorStop(0, 'rgba(255,180,92,.28)'); grd.addColorStop(1, 'rgba(255,180,92,.06)');
+  g.fillStyle = grd; g.fillRect(ox0, 18, ox1 - ox0, SH - 18);
+  g.fillStyle = '#ffcf8f'; g.font = '600 10px -apple-system,Helvetica,Arial,sans-serif'; g.textAlign = 'center';
+  g.fillText(narrow ? 'overlap' : 'overlap: 3 datasets', (ox0 + ox1) / 2, 14);
+  // axis + years
+  g.strokeStyle = 'rgba(160,190,255,.45)'; g.lineWidth = 1; g.beginPath(); g.moveTo(PADX, axisY); g.lineTo(SW - PADX, axisY); g.stroke();
+  g.font = '500 10px -apple-system,Helvetica,Arial,sans-serif';
+  for (let y = Y0; y <= 2026; y++){
+    const x = xOf(y), major = y % 5 === 0 || y === 2006;
+    g.strokeStyle = major ? 'rgba(220,235,255,.8)' : 'rgba(160,190,255,.35)';
+    g.beginPath(); g.moveTo(x, axisY - (major ? 6 : 3)); g.lineTo(x, axisY + 3); g.stroke();
+    if (major || (!narrow && y % 2 === 0)){ g.fillStyle = major ? '#dfeaff' : '#7f8db0'; g.textAlign = 'left'; g.fillText(String(y), x + 2, axisY - 8); }
+  }
+  // lanes
+  lanes.forEach((d, i) => {
+    const y = laneTop + i * (laneH + 2), on = selected === d, x0 = xOf(d.start), x1 = d.end ? xOf(d.end) : x0;
+    g.globalAlpha = selected && !on ? .35 : .9;
+    g.fillStyle = d.color;
+    if (d.kind === 'still' && !d.end){ g.beginPath(); g.arc(x0, y + laneH / 2, laneH / 2 + 1, 0, 6.29); g.fill(); }
+    else { g.fillRect(x0, y, Math.max(2, x1 - x0), laneH); }
+    if (d.kind === 'still' && d.end){ g.clearRect(x0 + 1.5, y + 1.5, Math.max(0, x1 - x0 - 3), laneH - 3); g.fillStyle = 'rgba(126,224,129,.25)'; g.fillRect(x0 + 1.5, y + 1.5, Math.max(0, x1 - x0 - 3), laneH - 3); }
+    if (on){ g.shadowColor = d.color; g.shadowBlur = 12; g.fillStyle = d.color; g.fillRect(x0, y, Math.max(3, x1 - x0), laneH); g.shadowBlur = 0; }
+    g.globalAlpha = 1;
+  });
+  // selected: window bracket + time-step ticks on the axis
+  const d = selected;
+  if (d && (d.kind === 'range' || d.kind === 'still')){
+    const x0 = xOf(d.start), x1 = d.end ? xOf(d.end) : x0;
+    g.fillStyle = d.color; g.globalAlpha = .18; g.fillRect(x0, 18, Math.max(2, x1 - x0), SH - 18); g.globalAlpha = 1;
+    if (d.step){
+      const px = (xOf(d.start + d.step) - x0), n = Math.round((d.end - d.start) / d.step);
+      g.strokeStyle = d.color; g.lineWidth = 1;
+      if (px >= 3){ g.beginPath(); for (let t = d.start; t <= d.end + 1e-6; t += d.step){ const x = xOf(t); g.moveTo(x, axisY + 4); g.lineTo(x, axisY + 10); } g.stroke(); }
+      else { // too dense to draw one by one: hatch it and say how many
+        g.globalAlpha = .8; g.beginPath(); for (let x = x0; x <= x1; x += 1.5){ g.moveTo(x, axisY + 4); g.lineTo(x, axisY + 10); } g.stroke(); g.globalAlpha = 1;
+      }
+      g.fillStyle = d.color; g.font = '600 10px -apple-system,Helvetica,Arial,sans-serif';
+      const lbl = `${d.stepLabel.split(' (')[0].split(';')[0]}, about ${n.toLocaleString('en-US')} frames`;
+      const lx = Math.min(Math.max(x1 + 6, PADX), SW - g.measureText(lbl).width - 4);
+      g.textAlign = 'left'; g.fillText(lbl, x1 + 6 + g.measureText(lbl).width > SW ? Math.max(PADX, x0 - g.measureText(lbl).width - 6) : lx, axisY + 12);
+    } else {
+      g.fillStyle = '#ffcf8f'; g.font = '600 10px -apple-system,Helvetica,Arial,sans-serif'; g.textAlign = 'left';
+      const lbl = 'still / no time axis'; const w = g.measureText(lbl).width;
+      g.fillText(lbl, x1 + 8 + w > SW ? x0 - w - 8 : x1 + 8, axisY + 12);
+    }
+  }
+  // playhead
+  if (!unknownMode){
+    const x = xOf(Math.min(Math.max(curT, Y0), Y1));
+    g.strokeStyle = '#ffffff'; g.lineWidth = 1.5; g.shadowColor = '#7fd4ff'; g.shadowBlur = jump ? 16 : 8;
+    g.beginPath(); g.moveTo(x, 18); g.lineTo(x, SH - 2); g.stroke();
+    g.fillStyle = '#ffffff'; g.beginPath(); g.arc(x, axisY, 5, 0, 6.29); g.fill(); g.shadowBlur = 0;
+  } else {
+    g.fillStyle = '#ffa0d0'; g.font = '600 11px -apple-system,Helvetica,Arial,sans-serif'; g.textAlign = 'right';
+    g.fillText(selected && selected.kind === 'reference' ? 'reference: not on the timeline' : 'date unknown: not on the timeline', SW - PADX, SH - 6);
+  }
+}
+let dragging = false;
+function scrubAt(e){
+  const r = sc.getBoundingClientRect();
+  curT = Math.min(Math.max(tOf(e.clientX - r.left), Y0), ymd(2026, 12, 31));
+  jump = null; dateEl.classList.remove('jump'); curPrec = 'day';
+  if (unknownMode){ unknownMode = false; dateEl.classList.remove('unknown'); }
+  renderDate(); updateLive(); drawScrub();
+  const live = D.filter(d => isLive(d, curT));
+  statusEl.innerHTML = live.length ? `live at this date: ${live.map(d => `<b style="color:${d.color}">${d.short}</b>`).join(', ')}` : 'no dataset covers this date';
+}
+sc.addEventListener('pointerdown', e => { dragging = true; sc.setPointerCapture(e.pointerId); scrubAt(e); });
+sc.addEventListener('pointermove', e => { if (dragging) scrubAt(e); });
+sc.addEventListener('pointerup', () => { dragging = false; });
+
+// ---------- click globe / float to open info ----------
+const ray = new THREE.Raycaster(), mouse = new THREE.Vector2(); let down = null;
+canvas.addEventListener('pointerdown', e => down = [e.clientX, e.clientY]);
+canvas.addEventListener('pointerup', e => {
+  if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) return;
+  mouse.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  ray.setFromCamera(mouse, camera);
+  const hit = ray.intersectObjects([floatMesh], false)[0];
+  if (hit && selected && floatG.visible){ zoom.querySelector('img').src = window.IMG['card_' + selected.id]; zoom.style.display = 'flex'; }
+});
+
+// ---------- layout ----------
+function resize(){
+  const w = innerWidth, h = innerHeight, mobile = w <= 860;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h; camera.fov = mobile ? 58 : 42;
+  // shift the projection so the globe sits in the free area between the side panels
+  const L = mobile ? 0 : 282, Rr = mobile ? 0 : 412, top = mobile ? 150 : 110, bot = mobile ? 130 : 150;
+  camera.setViewOffset(w, h, (Rr - L) / 2, (bot - top) / 2, w, h);
+  camera.updateProjectionMatrix();
+  sizeScrub();
+}
+addEventListener('resize', resize);
+
+// ---------- loop ----------
+const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const clock = new THREE.Clock();
+let spinBoost = 0, lastT = curT, warp = 0;
+const fwd = new THREE.Vector3(), tmp = new THREE.Vector3(), right = new THREE.Vector3(), up = new THREE.Vector3();
+function loop(){
+  const dt = Math.min(clock.getDelta(), .05), t = clock.elapsedTime;
+  gUni.uTime.value = t;
+  if (jump){
+    const k = Math.min(1, (performance.now() - jump.s) / jump.dur);
+    curT = jump.from + (jump.to - jump.from) * ease(k);
+    renderDate(); drawScrub(); updateLive();
+    if (k >= 1) landJump();
+  }
+  // the Earth spins with the passage of time during a jump (forward = eastward)
+  const rate = (curT - lastT) / Math.max(dt, 1e-3); lastT = curT;
+  spinBoost += (Math.max(-6, Math.min(6, rate * .9)) - spinBoost) * .12;
+  globe.rotation.y += dt * (.06 + spinBoost);
+  warp += ((jump ? 1 : 0) - warp) * .08;
+  nearStars.scale.setScalar(1 + warp * .9); nearStars.material.opacity = .9 - warp * .3;
+  farStars.rotation.y += dt * spinBoost * .02;
+  atmo.material.uniforms.uK.value = 1 + warp * 1.2;
+  // texture dissolve
+  if (swap){
+    const k = Math.min(1, (performance.now() - swap.s) / swap.dur);
+    gUni.uMix.value = k;
+    if (k >= 1){ gUni.uA.value = TEX[swap.key]; gUni.uTintA.value.copy(swap.tint); gUni.uMix.value = 0; globeKey = swap.key; swap = null; }
+  }
+  gUni.uDim.value = 1 - floatOpacity * .55;
+  grat.material.opacity = globeKey === BASE_KEY ? .12 : .04;
+  // floating panel: to the right of the globe in camera space, always facing the camera
+  floatOpacity = FAST ? floatTarget : floatOpacity + (floatTarget - floatOpacity) * .08;
+  if (floatG.visible){
+    right.setFromMatrixColumn(camera.matrixWorld, 0); up.setFromMatrixColumn(camera.matrixWorld, 1);
+    // hover in front of the globe, between it and the camera, slightly to the right
+    fwd.setFromMatrixColumn(camera.matrixWorld, 2);
+    const mobile = innerWidth <= 860;
+    tmp.copy(fwd).multiplyScalar(R + 2.5).addScaledVector(right, mobile ? 0 : 1.2).addScaledVector(up, -.4 + Math.sin(t * .8) * .2);
+    floatG.position.copy(tmp); floatG.quaternion.copy(camera.quaternion);
+    floatG.scale.setScalar((mobile ? .72 : 1) * (.85 + floatOpacity * .15));
+    floatMat.opacity = floatOpacity; frameMat.opacity = floatOpacity * (.35 + Math.sin(t * 2) * .1);
+    if (floatCap) floatCap.material.opacity = floatOpacity;
+    if (floatTarget === 0 && floatOpacity < .01) floatG.visible = false;
+  }
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(loop);
+}
+
+// ---------- boot ----------
+(async () => {
+  try {
+    await Promise.all(['globe_3912', 'globe_5313', 'globe_5011', ...D.map(d => 'card_' + d.id)].map(loadTex));
+    gUni.uA.value = TEX[BASE_KEY]; gUni.uB.value = TEX[BASE_KEY]; gUni.uTintA.value.copy(BASE_TINT);
+    document.getElementById('loading').remove();
+    resize(); setStatus(); renderDate(); updateLive();
+    window.__ready = {textures:Object.keys(TEX).length};
+    loop();
+    const m = location.hash.match(/ds=(\d+)/);   // deep link, e.g. datasets-3d.html#ds=5425
+    if (m){ const d = D.find(x => x.id === m[1]); if (d) setTimeout(() => select(d), 300); }
+  } catch (err){
+    document.getElementById('loading').textContent = 'Failed to load: ' + err;
+    console.error(err);
+  }
+})();
+</script>
+</body>
+</html>

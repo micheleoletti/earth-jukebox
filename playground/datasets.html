@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Earth Jukebox Datasets</title>
+<style>
+:root{
+  --bg:#070b16; --bg2:#0d1426; --panel:#111a30; --line:#22304f; --line2:#2d3d63;
+  --text:#e6ecf8; --muted:#8e9bb8; --dim:#5d6a88; --accent:#7cc4ff; --warn:#ffb454;
+  --c5313:#b78cff; --c3912:#3fd0c9; --c5669:#ff8a65; --c5533:#f5d76e;
+  --c5425:#5aa9ff; --c5196:#ff6b9a; --c5011:#ffe14d; --c4960:#7fe3a1; --c4950:#8bd46a; --c13786:#c9c9c9;
+  --band:rgba(124,196,255,.10); --band-strong:rgba(124,196,255,.22);
+  --radius:12px;
+  --font: ui-sans-serif, -apple-system, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.5}
+body{background:radial-gradient(1200px 600px at 80% -10%, #16224a 0%, transparent 60%), radial-gradient(900px 500px at -10% 20%, #10203a 0%, transparent 60%), var(--bg);min-height:100vh;overflow-x:hidden}
+.wrap{max-width:1180px;margin:0 auto;padding:32px 16px 64px}
+header h1{font-size:clamp(24px,4vw,38px);margin:0 0 6px;letter-spacing:-.02em}
+header h1 span{color:var(--accent)}
+header p{margin:0;color:var(--muted);max-width:760px}
+.kicker{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+section{margin-top:36px}
+h2{font-size:20px;margin:0 0 4px;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:14px;margin:0 0 14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.scroll svg{display:block}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:12px}
+.legend i{display:inline-block;width:22px;height:10px;border-radius:2px;vertical-align:middle;margin-right:6px;border:1px solid var(--line2)}
+.bands{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:12px}
+.band{border:1px solid var(--line2);border-radius:10px;padding:10px 12px;font-size:13px;background:var(--bg2)}
+.band b{display:block;font-size:14px}
+.band.best{border-color:var(--accent);box-shadow:0 0 0 1px rgba(124,196,255,.25) inset}
+.band .tag{font-family:var(--mono);font-size:11px;color:var(--accent)}
+#tip{position:fixed;pointer-events:none;z-index:50;background:#0b1224f2;border:1px solid var(--line2);border-radius:8px;padding:8px 10px;font-size:12.5px;max-width:280px;opacity:0;transition:opacity .12s;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+#tip b{display:block;font-size:13px;margin-bottom:2px}
+#tip .k{color:var(--muted)}
+.note{font-size:13px;color:var(--muted);margin-top:10px}
+.note strong{color:var(--text)}
+/* calculator */
+.calc{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center}
+.calc input[type=range]{width:100%;accent-color:var(--accent)}
+.big{font-family:var(--mono);font-size:clamp(34px,7vw,52px);color:var(--accent);line-height:1}
+.calc .meta{font-size:13px;color:var(--muted)}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+button.preset{background:var(--bg2);color:var(--text);border:1px solid var(--line2);border-radius:999px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer}
+button.preset:hover,button.preset:focus-visible{border-color:var(--accent);outline:none}
+@media (max-width:560px){.calc{grid-template-columns:1fr}}
+/* cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;border-top:3px solid var(--c)}
+.card .img{aspect-ratio:16/9;background:#050810;position:relative;overflow:hidden}
+.card img{width:100%;height:100%;object-fit:cover;display:block}
+.card .fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:13px;background:repeating-linear-gradient(45deg,#0b1122 0 10px,#0e1529 10px 20px)}
+.card .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.card h3{margin:0;font-size:16px;line-height:1.3}
+.card h3 a{color:var(--text);text-decoration:none}
+.card h3 a:hover{color:var(--accent);text-decoration:underline}
+.card .id{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.card p{margin:0;font-size:13.5px;color:#c4cde0}
+.card dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:13px}
+.card dt{color:var(--muted)}
+.card dd{margin:0}
+.sound{margin-top:auto;background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px}
+.sound span{font-family:var(--mono);font-size:11px;color:var(--c);display:block;letter-spacing:.06em;text-transform:uppercase}
+.badge{display:inline-block;font-family:var(--mono);font-size:10.5px;padding:1px 6px;border-radius:999px;border:1px solid var(--warn);color:var(--warn);margin-left:6px;vertical-align:1px;text-transform:uppercase;letter-spacing:.05em}
+.badge.ref{border-color:var(--muted);color:var(--muted)}
+.links{font-size:12.5px;display:flex;gap:12px;flex-wrap:wrap}
+.links a{color:var(--accent)}
+footer ul{margin:8px 0 0;padding-left:20px;color:#c4cde0;font-size:14px}
+footer li{margin:4px 0}
+code{font-family:var(--mono);font-size:12.5px;background:var(--bg2);padding:1px 5px;border-radius:4px;border:1px solid var(--line)}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">NASA Space Apps 2026 &middot; Earth Information Jukebox</div>
+  <h1>Every dataset, <span>on one timeline</span></h1>
+  <p>Ten NASA Scientific Visualization Studio items: what each shows, when it covers and how finely it steps through time, so you can see which ones overlap and can play together as one piece of music.</p>
+</header>
+
+<section>
+  <h2>Layered timeline 2006 to 2026</h2>
+  <p class="sub">One lane per dataset. Bar texture shows time step: wide ticks = yearly, medium = 10-day, fine hatch = daily, dense = sub-daily. Diamonds are single stills. Highlighted columns are overlaps. Hover or tap for details.</p>
+  <div class="panel">
+    <div class="scroll" id="tlScroll"><svg id="timeline" role="img" aria-label="Timeline of datasets 2006 to 2026"></svg></div>
+    <div class="legend">
+      <span><i style="background:repeating-linear-gradient(90deg,#b78cff 0 2px,transparent 2px 14px)"></i>yearly step</span>
+      <span><i style="background:repeating-linear-gradient(90deg,#ffe14d 0 1px,transparent 1px 4px)"></i>10-day step</span>
+      <span><i style="background:repeating-linear-gradient(90deg,#5aa9ff 0 1px,transparent 1px 2px)"></i>daily step</span>
+      <span><i style="background:#ff6b9a"></i>sub-daily</span>
+      <span><i style="background:repeating-linear-gradient(45deg,#8bd46a55 0 3px,transparent 3px 6px);border-style:dashed"></i>collection window of a static composite</span>
+      <span><i style="background:var(--band-strong)"></i>overlap band</span>
+    </div>
+    <div class="bands" id="bands"></div>
+  </div>
+</section>
+
+<section>
+  <h2>Zoom: 2021-01-15 to 2023-07-31</h2>
+  <p class="sub">The only window where three datasets overlap. Each tick below is one real data step.</p>
+  <div class="panel">
+    <div class="scroll"><svg id="zoom" role="img" aria-label="Zoomed view 2021 to 2023"></svg></div>
+    <p class="note" id="zoomNote"></p>
+  </div>
+</section>
+
+<section>
+  <h2>How long is the piece?</h2>
+  <p class="sub">The 2021 to 2023 overlap played at the shared 10-day step.</p>
+  <div class="panel">
+    <div class="calc">
+      <div>
+        <label for="sps" style="font-size:14px">Seconds per 10-day step: <b id="spsVal" style="font-family:var(--mono)">2.00</b></label>
+        <input type="range" id="sps" min="0.25" max="4" step="0.05" value="2">
+        <div class="meta" id="calcMeta"></div>
+      </div>
+      <div style="text-align:right"><div class="big" id="dur">0:00</div><div class="meta">total length</div></div>
+    </div>
+    <div class="presets">
+      <button class="preset" data-v="0.6667">1 step = 1 beat @ 90 BPM (~1 min)</button>
+      <button class="preset" data-v="2">1 step = 1 bar @ 120 BPM (~3 min)</button>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>The datasets</h2>
+  <p class="sub">Click a title for the SVS page. File list for any item: <code>https://svs.gsfc.nasa.gov/api/&lt;id&gt;</code> (PNG frame sequences, MP4 movies, and a <code>*_cbar.png</code> colourbar to map colour back to real values).</p>
+  <div class="grid" id="cards"></div>
+</section>
+
+<footer>
+  <section class="panel">
+    <h2>Caveats</h2>
+    <ul>
+      <li><strong>Frame index is not always time.</strong> Many movies include camera moves, zooms, title cards and fades. Map frames to dates before sonifying (Perpetual Ocean 2 ships a separate dates layer for this).</li>
+      <li><strong>Steps differ.</strong> Yearly, 10-day, daily and sub-daily data cannot be lined up frame for frame. Resample to a shared step (10 days for the 2021 to 2023 overlap) or let each layer move at its own rhythm.</li>
+      <li><strong>Two items are stills.</strong> GEOS Aerosols (2025-08-19) and GEDI Forest Height have no time axis. Sonify them by scanning across space instead of time.</li>
+      <li><strong>Unknown dates.</strong> Air Quality (GEOS-CF) and the Atmospheric River have no dates in their metadata, so they are not placed on the timeline.</li>
+      <li>Items marked <span class="badge">unverified</span> have a time step inferred, not stated in the SVS metadata.</li>
+    </ul>
+  </section>
+</footer>
+
+</div>
+<div id="tip" role="tooltip"></div>
+
+<script>
+const SVS = id => `https://svs.gsfc.nasa.gov/${id}/`;
+const API = id => `https://svs.gsfc.nasa.gov/api/${id}`;
+
+// kind: range | still | composite | unknown | reference
+// texture: yearly | tenday | daily | subdaily
+const DATA = [
+  {id:5313, title:"Change in Night Lights 2012-2023 (EIC)", short:"Night Lights", kind:"range", start:"2012-01-01", end:"2023-12-31", texture:"yearly",
+   represents:"Annual averages of city lights at night (VIIRS), then a change map: purple = more light, orange = less; zooms on India, Ukraine, W. Europe, E. Mediterranean.",
+   window:"2012-01 to 2023-12", step:"1 year (12 frames of data)", sound:"Brightness to note density, one chord per year.",
+   img:"https://svs.gsfc.nasa.gov/vis/a000000/a005300/a005313/nightlights_flat_series_and_change_wZooms_13_EIC.02599_print.jpg"},
+  {id:3912, title:"Global Sea Surface Currents and Temperature (ECCO2)", short:"ECCO2 currents", kind:"range", start:"2007-03-25", end:"2008-03-03", texture:"daily", unverified:true,
+   represents:"Modelled ocean surface currents coloured by sea surface temperature.",
+   window:"2007-03-25 to 2008-03-03", step:"~daily model", sound:"Flow to evolving pads.",
+   img:"https://svs.gsfc.nasa.gov/vis/a000000/a003900/a003912/flat_atlantic_ecco2_6840x2304.23000_print.jpg"},
+  {id:5669, title:"GEOS Aerosols (2025)", short:"GEOS Aerosols", kind:"still", start:"2025-08-19",
+   represents:"Smoke, dust, sea salt, sulfate etc. from the GEOS model, each type its own colour.",
+   window:"Single still: 2025-08-19 20:00 UTC", step:"No time axis (still)", sound:"Multi-track: one instrument per aerosol type, scan in space.",
+   img:"https://svs.gsfc.nasa.gov/vis/a000000/a005600/a005669/Aerosols_2025-08-19T20_00_00_1920x1080.png"},
+  {id:5533, title:"Air Quality Model Runs (GEOS-CF)", short:"Air Quality", kind:"unknown",
+   represents:"PM2.5, ozone, CO, NOx concentrations from the GEOS-CF forecast system.",
+   window:"Unknown (not in metadata)", step:"Model frames (~740), step unknown", sound:"Palette to chords.",
+   img:"https://svs.gsfc.nasa.gov/vis/a000000/a005500/a005533/AirQuality_Sphere_1920x1080_0000.png"},
+  {id:5425, title:"Perpetual Ocean 2: Western Boundary Currents", short:"Perpetual Ocean 2", kind:"range", start:"2021-01-15", end:"2023-12-25", texture:"daily", unverified:true,
+   represents:"ECCO2 ocean currents (Kuroshio, Agulhas, Gulf Stream); surface flows white, deep flows blue-cyan. Has a separate dates layer mapping frames to dates.",
+   window:"2021-01-15 to 2023-12-25", step:"~daily model; particle trails 3-6 days", sound:"Flowing strings.",
+   img:"https://svs.gsfc.nasa.gov/vis/a000000/a005400/a005425/perpetual_ocean2_CLOSE_093_clean_noDate_1080p_carousel.jpg"},
+  {id:5196, title:"DYAMOND Global Carbon Dioxide", short:"CO2 (DYAMOND)", kind:"range", start:"2020-01-01", end:"2020-03-31", texture:"subdaily",
+   represents:"CO2 concentration (ppm) moving through the atmosphere, model; camera orbits Earth.",
+   window:"2020-01 to 2020-03", step:"Sub-daily model", sound:"Rising drone and tension.",
+   img:"https://svs.gsfc.nasa.gov/vis/a000000/a005100/a005196/dyamondPointCloud_12-1-2023b_dyamond_co2_anim_globe_orbit_3x3Hyperwall.00200_print.jpg"},
+  {id:5011, title:"Lightning Events Detected from the ISS 2017-2023", short:"ISS Lightning", kind:"range", start:"2017-01-01", end:"2023-07-31", texture:"tenday",
+   represents:"Lightning flashes seen by the LIS sensor on the ISS; shows seasonal patterns.",
+   window:"2017-01 to 2023-07", step:"10-day rolling window", sound:"Percussion hits per flash.",
+   img:"https://svs.gsfc.nasa.gov/vis/a000000/a005000/a005011/iss_lightning_preview.jpg"},
+  {id:4960, title:"A 3D View of an Atmospheric River", short:"Atmospheric River", kind:"unknown",
+   represents:"One atmospheric river event from an Earth system model (hourly reanalysis since 1980); narrated movie with camera moves.",
+   window:"Single event, date not in metadata", step:"Hourly model", sound:"Swelling textures.",
+   img:"https://svs.gsfc.nasa.gov/vis/a000000/a004900/a004960/atmos_rivers_narrated_4k.00090_print.jpg"},
+  {id:4950, title:"GEDI Forest Height", short:"GEDI Forest Height", kind:"composite", start:"2019-04-01", end:"2020-04-30",
+   represents:"Global forest canopy height from the GEDI lidar on the ISS (brown/dark green = short, bright green/white = tall).",
+   window:"Data collected 2019-04 to 2020-04", step:"Static composite (no time axis)", sound:"Height to pitch; scan the map like a melody.",
+   img:"https://svs.gsfc.nasa.gov/vis/a000000/a004900/a004950/GEDI_global_w_colorbar_0900_print.jpg"},
+  {id:13786, title:"Data Sonification: Caldwell 73", short:"Caldwell 73", kind:"reference",
+   represents:"Reference only: NASA's own image-to-sound example (star radius to pitch, choir + marimba + glockenspiel).",
+   window:"n/a", step:"n/a", sound:"Listen to it as a model for mapping an image to sound.",
+   img:"https://svs.gsfc.nasa.gov/vis/a010000/a013700/a013786/print.jpg"},
+];
+
+const OVERLAPS = [
+  {start:"2021-01-15", end:"2023-07-31", label:"A", title:"2021-01-15 to 2023-07-31", who:"Night Lights + Lightning + Perpetual Ocean 2", note:"Only 3-way overlap of time series.", best:true},
+  {start:"2020-01-01", end:"2020-03-31", label:"B", title:"2020 Jan to Mar", who:"CO2 + Lightning + Night Lights"},
+  {start:"2019-04-01", end:"2020-04-30", label:"C", title:"2019-04 to 2020-04", who:"GEDI + Lightning + Night Lights", note:"GEDI is a static composite of this window."},
+];
+
+const colorOf = id => getComputedStyle(document.documentElement).getPropertyValue('--c'+id).trim();
+const T = s => new Date(s+"T00:00:00Z").getTime();
+const DAY = 86400000;
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs={}, parent){ const e=document.createElementNS(NS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); if(parent) parent.appendChild(e); return e; }
+
+/* tooltip */
+const tip = document.getElementById('tip');
+function bindTip(node, html){
+  node.style.cursor='pointer';
+  const show = ev => { tip.innerHTML=html; tip.style.opacity=1; move(ev); };
+  const move = ev => {
+    const p = ev.touches ? ev.touches[0] : ev;
+    const w = tip.offsetWidth, h = tip.offsetHeight;
+    let x = p.clientX+14, y = p.clientY+14;
+    if (x+w > innerWidth-8) x = p.clientX-w-14;
+    if (y+h > innerHeight-8) y = p.clientY-h-14;
+    tip.style.left=Math.max(8,x)+'px'; tip.style.top=Math.max(8,y)+'px';
+  };
+  node.addEventListener('mouseenter',show); node.addEventListener('mousemove',move);
+  node.addEventListener('mouseleave',()=>tip.style.opacity=0);
+  node.addEventListener('click',ev=>{ev.stopPropagation(); show(ev);});
+}
+document.addEventListener('click',()=>tip.style.opacity=0);
+const tipHtml = d => `<b>${d.title}</b><span class="k">Window:</span> ${d.window}<br><span class="k">Step:</span> ${d.step}${d.unverified?' (unverified)':''}`;
+
+/* ---------- main timeline ---------- */
+function drawTimeline(){
+  const svg = document.getElementById('timeline');
+  const lanes = DATA.filter(d => ['range','still','composite'].includes(d.kind));
+  const unknown = DATA.filter(d => d.kind==='unknown');
+  const labelW=150, plotW=1000, padR=20, top=34, laneH=34, gap=26, unkH=34;
+  const W = labelW+plotW+padR;
+  const lanesBottom = top + lanes.length*laneH;
+  const H = lanesBottom + gap + 20 + unknown.length*unkH + 10;
+  svg.setAttribute('width',W); svg.setAttribute('height',H); svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const t0=T("2006-01-01"), t1=T("2027-01-01");
+  const x = t => labelW + (t-t0)/(t1-t0)*plotW;
+
+  const defs = el('defs',{},svg);
+  // texture patterns
+  lanes.forEach(d=>{
+    const c = colorOf(d.id);
+    if(d.texture==='tenday'){
+      const p = el('pattern',{id:'p'+d.id,width:3,height:10,patternUnits:'userSpaceOnUse'},defs);
+      el('rect',{width:3,height:10,fill:c,opacity:.12},p);
+      el('rect',{width:1,height:10,fill:c},p);
+    } else if(d.texture==='daily'){
+      const p = el('pattern',{id:'p'+d.id,width:1.5,height:10,patternUnits:'userSpaceOnUse'},defs);
+      el('rect',{width:1.5,height:10,fill:c,opacity:.35},p);
+      el('rect',{width:.75,height:10,fill:c},p);
+    } else if(d.kind==='composite'){
+      const p = el('pattern',{id:'p'+d.id,width:6,height:6,patternUnits:'userSpaceOnUse',patternTransform:'rotate(45)'},defs);
+      el('rect',{width:3,height:6,fill:c,opacity:.45},p);
+    }
+  });
+
+  // year grid
+  for(let y=2006;y<=2026;y++){
+    const xx=x(T(`${y}-01-01`));
+    el('line',{x1:xx,x2:xx,y1:top-6,y2:lanesBottom,stroke:'#22304f','stroke-width':1},svg);
+    if(y%2===0 || plotW>900){
+      const t=el('text',{x:xx+3,y:top-12,fill:'#8e9bb8','font-size':11,'font-family':'ui-monospace,Menlo,monospace'},svg);
+      t.textContent = y%2===0 ? y : "'"+String(y).slice(2);
+      if(y%2) t.setAttribute('fill','#5d6a88');
+    }
+  }
+
+  // overlap bands
+  OVERLAPS.forEach(o=>{
+    const r=el('rect',{x:x(T(o.start)),y:top-4,width:Math.max(2,x(T(o.end))-x(T(o.start))),height:lanesBottom-top+8,fill:o.best?'rgba(124,196,255,.20)':'rgba(124,196,255,.11)',stroke:o.best?'#7cc4ff':'rgba(124,196,255,.4)','stroke-width':1,rx:3},svg);
+    bindTip(r,`<b>Overlap ${o.label}: ${o.title}</b>${o.who}${o.note?'<br><span class="k">'+o.note+'</span>':''}`);
+    const lt=el('text',{x:x(T(o.start))+(x(T(o.end))-x(T(o.start)))/2,y:lanesBottom+14,fill:'#7cc4ff','font-size':11,'text-anchor':'middle','font-family':'ui-monospace,Menlo,monospace','font-weight':700},svg);
+    lt.textContent=o.label;
+  });
+
+  // lanes
+  lanes.forEach((d,i)=>{
+    const y0 = top + i*laneH, c = colorOf(d.id), cy=y0+laneH/2;
+    if(i%2===0) el('rect',{x:0,y:y0,width:labelW-6,height:laneH,fill:'rgba(255,255,255,.02)'},svg);
+    el('circle',{cx:10,cy,r:4,fill:c},svg);
+    const lab=el('text',{x:20,y:cy+4,fill:'#e6ecf8','font-size':12.5},svg); lab.textContent=d.short;
+    const g = el('g',{},svg);
+    const bh=16, by=cy-bh/2;
+    if(d.kind==='still'){
+      const xx=x(T(d.start)), s=8;
+      el('polygon',{points:`${xx},${cy-s} ${xx+s},${cy} ${xx},${cy+s} ${xx-s},${cy}`,fill:c,stroke:'#070b16','stroke-width':1.5},g);
+      const t=el('text',{x:xx-12,y:cy+4,fill:c,'font-size':11,'text-anchor':'end'},g); t.textContent='still';
+    } else {
+      const xs=x(T(d.start)), xe=x(T(d.end)), w=Math.max(3,xe-xs);
+      if(d.texture==='yearly'){
+        el('rect',{x:xs,y:by,width:w,height:bh,fill:c,opacity:.12,rx:2},g);
+        const ys=+d.start.slice(0,4), ye=+d.end.slice(0,4);
+        for(let y=ys;y<=ye;y++){ const a=x(T(`${y}-01-01`)), b=x(T(`${y+1}-01-01`));
+          el('rect',{x:a+1,y:by,width:3,height:bh,fill:c},g);
+          el('rect',{x:a+1,y:by+bh-3,width:b-a-2,height:3,fill:c,opacity:.5},g); }
+      } else if(d.texture==='subdaily'){
+        el('rect',{x:xs,y:by,width:w,height:bh,fill:c,rx:2},g);
+      } else {
+        el('rect',{x:xs,y:by,width:w,height:bh,fill:`url(#p${d.id})`,rx:2},g);
+      }
+      el('rect',{x:xs,y:by,width:w,height:bh,fill:'none',stroke:c,'stroke-width':1,'stroke-dasharray':d.kind==='composite'?'3 2':'',rx:2},g);
+      if(d.kind==='composite'){ const t=el('text',{x:xe+6,y:cy+4,fill:c,'font-size':11},g); t.textContent='static composite'; }
+      if(d.unverified){ const t=el('text',{x:xe+6,y:cy+4,fill:'#ffb454','font-size':10.5},g); t.textContent='step unverified'; }
+    }
+    // hit area
+    const hit = el('rect',{x:labelW,y:y0+2,width:plotW,height:laneH-4,fill:'transparent'},svg);
+    bindTip(hit, tipHtml(d));
+  });
+
+  // unknown strip
+  const uy = lanesBottom + gap;
+  const ut=el('text',{x:0,y:uy+8,fill:'#8e9bb8','font-size':11,'font-family':'ui-monospace,Menlo,monospace','letter-spacing':'.1em'},svg);
+  ut.textContent='DATE UNKNOWN (not placed in time)';
+  unknown.forEach((d,i)=>{
+    const y0=uy+18+i*unkH, cy=y0+unkH/2, c=colorOf(d.id);
+    el('circle',{cx:10,cy,r:4,fill:c},svg);
+    const lab=el('text',{x:20,y:cy+4,fill:'#e6ecf8','font-size':12.5},svg); lab.textContent=d.short;
+    const r=el('rect',{x:labelW,y:cy-8,width:plotW,height:16,fill:'none',stroke:c,'stroke-dasharray':'2 6','stroke-width':1.5,rx:8,opacity:.7},svg);
+    const t=el('text',{x:labelW+plotW/2,y:cy+4,fill:c,'font-size':11.5,'text-anchor':'middle'},svg);
+    t.textContent = `${d.step}. ${d.window}.`;
+    const hit=el('rect',{x:0,y:y0,width:W,height:unkH,fill:'transparent'},svg);
+    bindTip(hit, tipHtml(d));
+  });
+
+  // band cards
+  document.getElementById('bands').innerHTML = OVERLAPS.map(o=>`<div class="band ${o.best?'best':''}"><span class="tag">OVERLAP ${o.label}${o.best?' &middot; BEST':''}</span><b>${o.title}</b>${o.who}${o.note?`<div class="note" style="margin-top:4px">${o.note}</div>`:''}</div>`).join('');
+
+  // start scrolled to the busy area on narrow screens
+  const sc=document.getElementById('tlScroll');
+  if(sc.clientWidth < W) sc.scrollLeft = x(T("2016-01-01")) - labelW;
+}
+
+/* ---------- zoom panel ---------- */
+const Z0="2021-01-15", Z1="2023-07-31";
+const ZDAYS = Math.round((T(Z1)-T(Z0))/DAY)+1;
+const STEPS = Math.ceil(ZDAYS/10);
+function drawZoom(){
+  const svg=document.getElementById('zoom');
+  const labelW=150, plotW=1000, padR=20, top=30, laneH=48;
+  const W=labelW+plotW+padR, H=top+3*laneH+16;
+  svg.setAttribute('width',W); svg.setAttribute('height',H); svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const t0=T(Z0), t1=T(Z1)+DAY;
+  const x=t=>labelW+(t-t0)/(t1-t0)*plotW;
+  // month grid
+  for(let y=2021;y<=2023;y++) for(let m=1;m<=12;m++){
+    const t=T(`${y}-${String(m).padStart(2,'0')}-01`); if(t<t0||t>t1) continue;
+    const xx=x(t);
+    el('line',{x1:xx,x2:xx,y1:top-4,y2:top+3*laneH,stroke:m===1?'#2d3d63':'#182340'},svg);
+    if(m===1||m===7){ const tx=el('text',{x:xx+3,y:top-10,fill:m===1?'#8e9bb8':'#5d6a88','font-size':11,'font-family':'ui-monospace,Menlo,monospace'},svg); tx.textContent=`${y}-${String(m).padStart(2,'0')}`; }
+  }
+  const lanes=[
+    {d:DATA.find(d=>d.id===5313), info:'3 annual blocks (2023 only partly inside the window)'},
+    {d:DATA.find(d=>d.id===5011), info:`${STEPS} ten-day ticks`},
+    {d:DATA.find(d=>d.id===5425), info:`${ZDAYS} daily ticks (step unverified)`},
+  ];
+  lanes.forEach((L,i)=>{
+    const d=L.d, c=colorOf(d.id), y0=top+i*laneH, cy=y0+laneH/2, by=cy-12, bh=24;
+    el('circle',{cx:10,cy,r:4,fill:c},svg);
+    const lab=el('text',{x:20,y:cy+4,fill:'#e6ecf8','font-size':12.5},svg); lab.textContent=d.short;
+    if(d.id===5313){
+      [2021,2022,2023].forEach(y=>{
+        const a=Math.max(t0,T(`${y}-01-01`)), b=Math.min(t1,T(`${y+1}-01-01`));
+        el('rect',{x:x(a)+1.5,y:by,width:x(b)-x(a)-3,height:bh,fill:c,opacity:.55,rx:3},svg);
+        const t=el('text',{x:x(a)+8,y:cy+4,fill:'#070b16','font-size':12,'font-weight':700},svg); t.textContent=y;
+      });
+    } else if(d.id===5011){
+      for(let k=0;k<STEPS;k++){ const xx=x(t0+k*10*DAY); el('rect',{x:xx,y:by,width:1.6,height:bh,fill:c},svg); }
+    } else {
+      for(let k=0;k<ZDAYS;k++){ const xx=x(t0+k*DAY); el('rect',{x:xx,y:by+4,width:.6,height:bh-8,fill:c,opacity:.85},svg); }
+    }
+    const hit=el('rect',{x:labelW,y:y0,width:plotW,height:laneH,fill:'transparent'},svg);
+    bindTip(hit, `<b>${d.short} in this window</b>${L.info}<br><span class="k">Native step:</span> ${d.step}`);
+  });
+  document.getElementById('zoomNote').innerHTML =
+    `<strong>Shared honest step = 10 days.</strong> ${ZDAYS} days in this window = <strong>${STEPS} steps</strong> (about 90). Lightning is the coarsest true time series here, so hold each Night Lights year across ~36 steps and average the ocean over each 10 days.`;
+}
+
+/* ---------- calculator ---------- */
+function fmt(s){ s=Math.round(s); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
+function calc(){
+  const v=+document.getElementById('sps').value;
+  document.getElementById('spsVal').textContent=v.toFixed(2);
+  document.getElementById('dur').textContent=fmt(v*STEPS);
+  document.getElementById('calcMeta').textContent=`${STEPS} steps x ${v.toFixed(2)} s. At 120 BPM that is ${(v/0.5).toFixed(1)} beats per step; at 90 BPM ${(v/(60/90)).toFixed(1)}.`;
+}
+document.getElementById('sps').addEventListener('input',calc);
+document.querySelectorAll('.preset').forEach(b=>b.addEventListener('click',()=>{ document.getElementById('sps').value=b.dataset.v; calc(); }));
+
+/* ---------- cards ---------- */
+function drawCards(){
+  const esc=s=>String(s).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+  document.getElementById('cards').innerHTML = DATA.map(d=>`
+    <article class="card" style="--c:${colorOf(d.id)}">
+      <div class="img"><img src="${d.img}" alt="Preview of ${esc(d.title)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'fallback',textContent:'Preview unavailable'}))"></div>
+      <div class="body">
+        <div class="id">SVS ${d.id}${d.kind==='reference'?'<span class="badge ref">reference</span>':''}${d.unverified?'<span class="badge">unverified</span>':''}</div>
+        <h3><a href="${SVS(d.id)}" target="_blank" rel="noopener">${esc(d.title)}</a></h3>
+        <p>${esc(d.represents)}</p>
+        <dl><dt>Window</dt><dd>${esc(d.window)}</dd><dt>Step</dt><dd>${esc(d.step)}${d.unverified?' <span class="badge">unverified</span>':''}</dd></dl>
+        <div class="sound"><span>Sound idea</span>${esc(d.sound)}</div>
+        <div class="links"><a href="${SVS(d.id)}" target="_blank" rel="noopener">SVS page</a><a href="${API(d.id)}" target="_blank" rel="noopener">File API</a></div>
+      </div>
+    </article>`).join('');
+}
+
+drawTimeline(); drawZoom(); calc(); drawCards();
+</script>
+</body>
+</html>
