@@ -1,0 +1,6 @@
+disruptor,tipo,inicio,fin,variable,cambio,tendencia_antes_por_decada,tendencia_despues_por_decada,unidad,percentil,ventana_antes,ventana_despues,origen
+Exceso de lluvia 1987,tormenta,1987-07,1987-07,precip_sahel,cambio de tendencia (de subir a bajar),1.5966,-0.9957,mm/day,0.998,1982-07→1987-06,1987-11→1992-10,"detectado en datos: precip_sahel, z≥2.5"
+Exceso de lluvia 1987,tormenta,1987-07,1987-07,evap_sahel,cambio de tendencia (de subir a bajar),0.9185,-0.6392,mm/day,0.971,1982-07→1987-06,1987-11→1992-10,"detectado en datos: precip_sahel, z≥2.5"
+Exceso de lluvia 1987,tormenta,1987-07,1987-07,soil_root_sahel,cambio de tendencia (de subir a bajar),0.0638,-0.0532,1,0.971,1982-07→1987-06,1987-11→1992-10,"detectado en datos: precip_sahel, z≥2.5"
+Exceso de lluvia 1988,tormenta,1988-08,1988-08,soil_root_sahel,cambio de tendencia (de subir a bajar),0.0839,-0.0369,1,0.986,1983-08→1988-07,1988-12→1993-11,"detectado en datos: precip_sahel, z≥2.5"
+Sequía 2011–12,sequía,2011-06,2012-06,aod_sahel,aceleración (arranca una tendencia),-0.0459,0.2073,dimensionless,0.994,2006-06→2011-05,2012-10→2017-09,catálogo curado (verificar)

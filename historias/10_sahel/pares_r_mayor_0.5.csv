@@ -1,0 +1,21 @@
+a,b,escala,r_secundario,desfase_meses,r_primario_bruto,p,n,armonia,rupturas
+precip_sahel,soil_root_sahel,anual,0.972,0,0.973,,,,
+precip_sahel,evap_sahel,anual,0.944,0,0.974,,,,
+evap_sahel,soil_root_sahel,anual,0.936,0,0.946,,,,
+soil_root_sahel,humidity_sahel,anual,0.882,0,0.908,,,,
+precip_sahel,humidity_sahel,anual,0.88,0,0.882,,,,
+evap_sahel,humidity_sahel,anual,0.879,0,0.9,,,,
+precip_sahel,tmax_sahel,anual,-0.835,0,-0.511,,,,
+soil_root_sahel,tmax_sahel,anual,-0.833,0,-0.441,,,,
+evap_sahel,soil_root_sahel,mensual,0.808,0,0.963,0.0,540.0,consonancia perfecta (unísono/quinta),0.0
+soil_root_sahel,humidity_sahel,mensual,0.795,0,0.875,0.0,540.0,consonancia perfecta (unísono/quinta),0.0
+evap_sahel,humidity_sahel,mensual,0.783,0,0.949,0.0,540.0,consonancia perfecta (unísono/quinta),0.0
+tmax_sahel,humidity_sahel,anual,-0.78,0,-0.526,,,,
+evap_sahel,tmax_sahel,anual,-0.776,0,-0.506,,,,
+precip_sahel,soil_root_sahel,mensual,0.73,1,0.597,0.0,539.0,consonancia perfecta (unísono/quinta),0.0
+lights_sahel,gbif_aves_sahel,anual,0.712,0,0.974,,,,
+soil_root_sahel,tmax_sahel,mensual,-0.597,0,-0.657,0.0,540.0,movimiento contrario (terceras),0.0
+precip_sahel,humidity_sahel,mensual,0.554,0,0.847,0.0,540.0,consonancia (terceras),0.0
+precip_sahel,evap_sahel,mensual,0.54,1,0.727,0.0,539.0,consonancia (terceras),0.0
+tmax_sahel,humidity_sahel,mensual,-0.532,0,-0.365,0.0,540.0,movimiento contrario (terceras),0.0
+evap_sahel,tmax_sahel,mensual,-0.522,0,-0.513,0.0,540.0,movimiento contrario (terceras),3.0

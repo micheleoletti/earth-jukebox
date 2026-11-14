@@ -1,0 +1,10 @@
+a,b,escala,r_primario_bruto,r_secundario,motivo
+tmax_sahel,aod_sahel,mensual,0.707,0.121,estación o tendencia compartida
+precip_sahel,lights_sahel,anual,0.58,0.299,tendencia compartida
+evap_sahel,lights_sahel,anual,0.572,0.275,tendencia compartida
+soil_root_sahel,north_atlantic_0_60N,anual,0.564,0.09,tendencia compartida
+soil_root_sahel,lights_sahel,anual,0.636,0.247,tendencia compartida
+soil_root_sahel,gbif_aves_sahel,anual,0.575,0.404,tendencia compartida
+humidity_sahel,lights_sahel,anual,0.511,0.376,tendencia compartida
+north_atlantic_0_60N,lights_sahel,anual,0.824,0.151,tendencia compartida
+north_atlantic_0_60N,gbif_aves_sahel,anual,0.883,0.158,tendencia compartida
