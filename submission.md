@@ -1,6 +1,6 @@
-# Earth Jukebox: submission text (NASA Space Apps 2026)
+# Earth Jukebox: answers for the NASA Space Apps 2026 project form
 
-Challenge: The Earth Information Jukebox
+Team: **Chopper Team** · Challenge: **The Earth Information Jukebox**
 
 ## Project name
 
@@ -8,107 +8,110 @@ Earth Jukebox
 
 ## High-level summary
 
-Earth Jukebox lets anyone hear how the planet is connected. It plays twelve real Earth stories, from Canadian wildfire smoke reaching New York to the tides travelling along a coast, on a 3D globe and as music at the same time. Every sound comes from measured data: the music grows louder and busier the further the planet is from normal, and when two signals are linked (fire and smoke, wind and storm surge, snow and temperature) the link itself chooses the harmony. Moving together sounds like unison, opposite signals answer each other in counterpoint, a delay becomes a canon, and a weak link drifts gently out of tune. Because the story is carried by sound, spoken announcements and keyboard control, blind and low-vision users get the same discovery as sighted users. It answers the challenge by turning NASA Earth Information Center themes into sonifications that are both musically pleasing and scientifically honest.
+Earth science should not be limited to sight. Earth Jukebox turns NASA Earth Information Center (EIC) visualizations, enriched with open NASA datasets, into a 3D globe you can explore and listen to. Each story follows one real event or natural cycle (a monsoon, a hurricane, a volcanic shock wave, a burning savanna, the planet's yearly breath) and shows how two things in the data are connected. Real nature sounds (rain, fire, wind, waves) follow the data under the centre of the screen, and a soft chord tells the connection: when two signals move together the chord is consonant and full, when the planet moves away from normal a tension note appears. Harmony expresses balance, dissonance reveals change. It answers the challenge by pairing an EIC visualization with a real-time sonification read from its frames, and it matters because it opens Earth data to blind and low-vision people, to children and to anyone who is not a scientist.
+
+## Demo link (video of 30 seconds or less, public)
+
+TODO: Jose's video link (YouTube or Vimeo, public, English subtitles if spoken in another language).
+
+## Final project link (public, no login)
+
+- Live app: https://earth-jukebox-cyd.pages.dev
+- Code: https://github.com/micheleoletti/earth-jukebox (branch `c4-breathing`)
 
 ## Detailed description
 
 ### What it does
 
-Earth Jukebox is a web page with a 3D globe and a music engine. The first screen is the jukebox: twelve stories, each a card. Tap one and the camera flies to the place, the data starts to play, and the music starts.
+Earth Jukebox opens on a slowly turning globe with a glowing point for each story. Tap a point and the camera flies in, the story's data appears on the globe and in a chart under it, and the sound starts. Five stories:
 
-Stories (events are one-off moments, cycles repeat):
+| Story | Where and when | What you see | The connection you hear |
+|---|---|---|---|
+| The Monsoon, Through NASA Eyes | India, 2025 | The NASA EIC rain anomaly frames wrapped on the globe (where it rains more or less than usual), falling rain, wind, greening land, water stored underground | Rain comes, the land turns green about two months later (r 0.85); stored water follows the rain |
+| Hurricane Ian Makes Landfall | Florida, September 2022 | The storm spiral on its real track, wind, tide-gauge water columns, rain from space | Wind rises and the sea climbs onto the land a few hours later (r 0.64) |
+| The Day the Air Rang (Hunga Tonga) | Pacific, January 2022 | The volcano, its eruption, the expected shock front circling the planet, real barometer jumps and sea wobbles at 15 NOAA gauges | The air jump arrives at each gauge on time (14 of 15 gauges, 0.9 to 2.2 hPa), the sea wobbles about 3 hours later |
+| The Planet Breathing | Northern Hemisphere, 2021 to 2023 | Trees that grow leaves and lose them with each month's greenness, CO2 haze | Forests green up and CO2 in the air drops, about 2 months later (r -0.93); each year a little more CO2 than the last |
+| Africa's Fire Belt | Southern Africa, 2019 | Every satellite fire detection as a flame, rain, the equator line | When the rain stops, the fires rise about a month later (r -0.90) |
 
-| # | Story | Place and time | Main signal (drives the music) | Partner signal (the link) |
-|---|---|---|---|---|
-| E1 | Smoke Across a Continent | Quebec to New York, May to June 2023 | New York PM2.5 | Quebec fire power (FIRMS) |
-| E2 | Hurricane Ian Makes Landfall | Southwest Florida, September 2022 | wind at Fort Myers | storm surge at the tide gauges |
-| E3 | The Day the Air Rang | Hunga Tonga, global, January 2022 | air-pressure jump at 15 points | water level at 15 tide gauges |
-| E4 | Black Summer | Southeast Australia, 2019 to 2020 | Sydney PM2.5 | fire power (FIRMS) |
-| E5 | Italy Holds Its Breath | Po Valley, January to May 2020 | ground NO2 vs the 2015 to 2019 normal | wind speed |
-| C1 | The Breathing Coast | US East and West coasts, March 2024 | water level at Boston | water level at a second gauge |
-| C2 | The City Breathes | Milan and Paris, 4 weeks of January 2019 | hourly NO2 in Milan | wind speed |
-| C3 | The Monsoon Arrives | India, 2019 | rain | vegetation greenness |
-| C4 | Africa's Fire Belt | Sub-Saharan Africa, 2019 | monthly fire count | rain |
-| C5 | Snow Follows the Cold | Northern Hemisphere, 2019 to 2020 | snow-covered area | air temperature |
-| C0 | The Planet Breathing | Global, 2021 | northern forest greenness | CO2 seasonal swing at Mauna Loa |
-| E0 | The City That Went Quiet | Wuhan, 2019 to 2020 | satellite NO2 vs the 2015 to 2019 normal | (single signal) |
-
-On the globe each dataset has one 3D form: fires are flames (area proportional to fire power), smoke is particles moved by the real wind, stations are labelled pillars, rain, snow and temperature tint the ground, wind is drawn as streaks, a hurricane is a spiral on its best track, tide gauges are water columns with ripples. Under the globe, a chart shows one lane per dataset; a glowing thread joins the main signal and its partner, with the measured correlation r and the delay written on it.
+Two modes: **Simple** (plain words for a five-year-old, no units, a comment under the chart at each key moment) and **Science** (dataset names, units, correlations, lags and every method in the footer).
 
 ### How it works
 
-1. **Data pipelines** (Python, one script per story) download the raw data from NASA and partner archives, cut the region and period, compute a normal (for events: the same calendar window in earlier years; for cycles: the signal's own range), measure the link between the two signals (Pearson r over a range of lags, with daily or yearly cycles removed where they would fake a link; the method is written in each story), and write a small data file per story.
-2. **The globe** (JavaScript, three.js, WebGL) loads a story file only when the story is picked, so the first page load is about 2 MB. Layers fade in and out, every lane has an on/off switch.
-3. **Music**: pre-rendered seamless loops (D major, 96 BPM, 8 bars), all synthesized by our own code: 5 drum intensities and 14 synth layers. One intensity knob (0 to 1) crossfades them. The knob is driven by the story's main signal every frame: normal = 0.35, 4 standard deviations above normal = 1, 2 below = 0, linear. For cycles, intensity is the position in the signal's own range. Data gaps ease back to normal and never invent a peak. Switching a 3D layer off mutes its voice.
-4. **Connection voices**: two live Web Audio voices sing the main signal and its partner. The measured link chooses how they relate: positive = a fifth above in unison, negative = counterpoint, a delay = a canon delayed by the lag, weak (|r| below 0.3) = a gentle detune. When the rolling correlation is at its strongest, a resolving chord swells and the thread glows (the "lock-in").
-5. **Honesty rules** built into every story: gaps stay gaps, scales are linear with a stated floor, models are labelled as models, every visual exaggeration (pillar height, smoothing, particle motion) is written in the footer, weak links are reported as weak, and playback speed never changes with the music.
+- **Data:** each story is built by a Python pipeline (`data-pipeline/`) from public NASA and NOAA archives into a small data file. The page is a single three.js web app that works offline from a file or online.
+- **Honesty rules:** nothing is faked. Gaps stay gaps, models are labelled "model", every visual exaggeration (pillar heights, flame sizes) is written in the story footer, and every connection is measured (Pearson r at the lag with the strongest link) and drawn only if it is at least moderate.
+- **Connections:** each measured link is a glowing thread between two chart lines (colour gradient from one to the other), grey when the two are not moving together now and bright and thick when they are.
+- **Sound, layer 1 (nature):** nine real public-domain recordings (fire, rain, wind, storm wind, waves, thunder, volcano, birds, city traffic) and a low space drone. Each sound's loudness follows the data at the centre of the screen: point at the fires and they crackle, point at the rain and it pours, zoom in and it gets closer.
+- **Sound, layer 2 (harmony):** a soft D major chord. Each connection is one voice (a cluster of chord tones): it fades in when its two signals move together and breathes with how strongly they change together right now. The base lifts when any connection is active. A single tension note fades in as the main signal leaves its normal range. Each story has its own musical scale.
+- **EIC frames into sound:** in the monsoon story the tension note is read from the NASA EIC anomaly frame under the centre of the screen: its colour is turned back into "mm per day wetter or drier than usual" with the frame's own colour bar, so the further from usual, the more tension you hear.
+- **Event sounds:** at real moments in the data (the eruption, landfall) a matching recording plays.
 
 ### Accessibility
 
-- Screen-reader announcements (aria-live) at each story beat, with real numbers.
-- Full keyboard control: 1 to 0, minus and equals pick stories, Space plays or pauses, arrows step through time, M mutes, Shift plus 1 to 6 switch layers, I opens the sources panel.
-- A text description of every story (period, layers, link, key numbers).
-- Reduced-motion mode (no auto-rotation, no camera flights, fewer particles), high-contrast text.
+- Screen-reader announcements of each story, its key moments and the measured links, plus a full text description of every story.
+- Full keyboard control (number keys for stories, Space to play, M to mute, Esc to go back to the globe).
+- Sound carries the story without the picture: what is happening (nature sounds) and how things connect (harmony).
+- Reduced-motion mode (`?reduced`), large readable text, Simple mode for children and non-scientists.
 
 ### Benefits and goals
 
-- Makes Earth science perceivable without sight, and memorable with it.
-- Shows connections instead of isolated datasets: the planet as one system.
-- Keeps the science honest: every number on screen and in sound is measured or clearly labelled as a model.
-- Goal: an open jukebox where anyone can add a story with one pipeline script and one preset.
+- Makes Earth science reachable without sight, and without scientific training.
+- Shows the planet as one connected system instead of separate datasets.
+- Every number is real and traceable, so teachers and scientists can trust it.
+- Built to grow: a new story is one data pipeline plus one preset.
 
 ### Tools and languages
 
-Python (numpy, netCDF4, pandas, h5py), JavaScript (three.js, Web Audio API), HTML and CSS. Headless Chrome (Puppeteer) for automated screenshots and frame-time checks.
+JavaScript, three.js (WebGL), Web Audio API, HTML/CSS; Python with NumPy, h5py and Pillow for data pipelines; ffmpeg for audio; Cloudflare Pages for hosting.
 
 ## Use of AI (SI)
 
-- The idea, the stories, the narrative ("hear how the planet is connected", links chosen as harmony) and every design decision are human.
-- AI coding tools (Claude Code by Anthropic) wrote most of the code and data-processing scripts under human direction and review.
-- No AI-generated audio: all music is synthesized by our own code (Web Audio, rendered offline in the browser). No AI-generated images or video.
+- The idea, the stories, the narrative ("Harmony expresses balance. Dissonance reveals change.") and every design decision are human.
+- AI coding tools (Claude Code by Anthropic) wrote most of the code and data-processing scripts under our direction and review.
+- No AI-generated audio, images or video. The sounds are real CC0 recordings from Freesound and sounds synthesized by our own code.
 
 ## NASA data used
 
-| Dataset | Stories | Link |
+| Dataset | Story | Link |
 |---|---|---|
-| FIRMS VIIRS S-NPP 375 m active fires (VNP14IMG), country yearly archives | E1, E4, C4 | https://firms.modaps.eosdis.nasa.gov/country/ |
-| GEOS-CF v1 assimilation (model): surface PM2.5, 10 m wind, 2 m temperature | E1, E4 | https://gmao.gsfc.nasa.gov/weather_prediction/GEOS-CF/ |
-| GPM IMERG Final V07: half-hourly (GPM_3IMERGHH), daily (GPM_3IMERGDF), monthly (GPM_3IMERGM) | E2, C3, C4 | https://doi.org/10.5067/GPM/IMERGDF/DAY/07 , https://doi.org/10.5067/GPM/IMERG/3B-MONTH/07 |
-| OMI/Aura OMNO2d v003 tropospheric NO2 | E5, E0 | https://doi.org/10.5067/Aura/OMI/DATA3007 |
-| MODIS/Terra MOD10CM v061 monthly snow cover | C5 | https://doi.org/10.5067/MODIS/MOD10CM.061 |
-| MODIS/Terra MOD13C2 v061 monthly NDVI | C0, C3 | https://doi.org/10.5067/MODIS/MOD13C2.061 |
-| MERRA-2 (model): M2T1NXSLV (850 hPa wind), M2TMNXSLV (2 m temperature), M2C0NXASM (land fraction) | C3, C5 | https://doi.org/10.5067/VJAFPLI1CSIV , https://doi.org/10.5067/AP1B0BA5PD2K |
-| GRACE and GRACE-FO JPL mascon RL06.3 CRI v04 (water storage) | C3 | https://doi.org/10.5067/TEMSC-3JC634 |
-| GIBS Blue Marble shaded relief (backdrop, not data) | all | https://www.earthdata.nasa.gov/engage/open-data-services-software/earthdata-developer-portal/gibs-api |
-| NASA SVS / Earth Information Center visuals (linked from each story's Sources panel) | all | https://svs.gsfc.nasa.gov/gallery/earth-information-center/ |
+| **NASA Earth Information Center / SVS 4897**, Seasonal Global Precipitation Variation (GPM), daily anomaly frames | Monsoon | https://svs.gsfc.nasa.gov/4897 |
+| GPM IMERG V07 precipitation: Late daily (GPM_3IMERGDL), Final monthly (GPM_3IMERGM), Final half-hourly (GPM_3IMERGHH) | Monsoon, Ian, Africa | https://doi.org/10.5067/GPM/IMERGDL/DAY/07 · https://doi.org/10.5067/GPM/IMERG/3B-MONTH/07 · https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGHH_07/summary |
+| MODIS/Terra MOD13C2 v061 monthly NDVI (vegetation greenness) | Monsoon, Planet Breathing | https://doi.org/10.5067/MODIS/MOD13C2.061 |
+| GRACE and GRACE-FO JPL mascons RL06.3 CRI v04 (water stored on land) | Monsoon | https://doi.org/10.5067/TEMSC-3JC634 |
+| MERRA-2 M2T1NXSLV (850 hPa wind, model) | Monsoon | https://doi.org/10.5067/VJAFPLI1CSIV |
+| FIRMS VIIRS S-NPP 375 m active fires (VNP14IMG) | Africa | https://firms.modaps.eosdis.nasa.gov/country/ |
+| GIBS Blue Marble shaded relief (globe backdrop, not data) | all | https://www.earthdata.nasa.gov/engage/open-data-services-software/earthdata-developer-portal/gibs-api |
 
-## Other references
+## Other references (data, code, sounds)
 
-- NOAA CO-OPS tide gauges: water level, hourly heights, tide predictions: https://tidesandcurrents.noaa.gov/
+- NOAA CO-OPS tide gauges: water level, tide predictions and air pressure (barometers): https://tidesandcurrents.noaa.gov/
 - NOAA NCEI IBTrACS v04r01 best tracks: https://www.ncei.noaa.gov/products/international-best-track-archive
 - NOAA NHC Hurricane Ian Tropical Cyclone Report: https://www.nhc.noaa.gov/data/tcr/AL092022_Ian.pdf
 - NOAA GML Mauna Loa CO2: https://gml.noaa.gov/ccgg/trends/
 - USGS earthquake catalog, event us7000gc8r (Hunga Tonga eruption): https://earthquake.usgs.gov/earthquakes/eventpage/us7000gc8r
-- Lamb wave speed for the reference ring: Matoza et al. 2022, Science 377, https://doi.org/10.1126/science.abo7063 ; Wright et al. 2022, Nature 609
+- Lamb wave speed for the reference front: Matoza et al. 2022, Science 377, https://doi.org/10.1126/science.abo7063 ; Wright et al. 2022, Nature 609
 - ECMWF ERA5 reanalysis (model), via the Open-Meteo historical weather API: https://open-meteo.com/en/docs/historical-weather-api
-- OpenAQ archive (New York monitors, US EPA AirNow feed): https://openaq.org/
-- NSW Government Air Quality Monitoring Network: https://www.airquality.nsw.gov.au/
-- ACT Health air quality monitoring data: https://www.data.act.gov.au/
-- European Environment Agency air quality e-reporting, verified E1a: https://eeadmz1-downloads-webapp.azurewebsites.net/
-- US Naval Observatory moon phases: https://aa.usno.navy.mil/data/MoonPhases
 - Natural Earth 1:50m countries: https://www.naturalearthdata.com/
-- three.js 0.160 (MIT), loaded from jsDelivr: https://threejs.org/
-- Fonts: system fonts only (San Francisco, Helvetica, Menlo). No web fonts.
-- Music: all loops synthesized by our own code (music-engine/prototype/loop-engine.js, synth-drums.js), live connection voices with the Web Audio API. No samples are shipped.
+- three.js 0.160 (MIT): https://threejs.org/
+- Sound recordings (all CC0, Freesound, found with Openverse):
+  - Fire: "Bonfire HQ.wav" by tosha73, https://freesound.org/people/tosha73/sounds/513280
+  - Rain: "1 Minute Rain (Medium)" by yzhamua, https://freesound.org/people/yzhamua/sounds/188655
+  - Wind: "a gentle breeze, wind 1" by mario1298, https://freesound.org/people/mario1298/sounds/181250
+  - Storm wind: "swirling winter wind gusty grains sand" by kyles, https://freesound.org/people/kyles/sounds/454213
+  - Waves: "ocean waves 01" by rucisko, https://freesound.org/people/rucisko/sounds/164767
+  - Thunder: "Thunder" by Fission9, https://freesound.org/people/Fission9/sounds/465314
+  - Volcano: "S35-08 Volcano explosion with debris and lava" by craigsmith, https://freesound.org/people/craigsmith/sounds/675739
+  - Birds: "Forest Birds" by NightVoice, https://freesound.org/people/NightVoice/sounds/123999
+  - City traffic: "Hamburg City Traffic Ambience" by Kinoton, https://freesound.org/people/Kinoton/sounds/352152
+- Synthesized sound (space drone, harmony chord): our own code with the Web Audio API.
+- Fonts: system fonts only.
 
-## 30 second video script (draft)
+## 30 second video script (for Jose)
 
 | Time | Picture | Words (spoken or subtitle) |
 |---|---|---|
-| 0:00 | Logo on the spinning globe | "Earth Jukebox, by team [name]." |
-| 0:02 | Jukebox screen with the twelve cards | "For the Earth Information Jukebox challenge: data you can hear, for everyone." |
-| 0:05 | Title over the globe | "Hear how the planet is connected." |
-| 0:10 | Story 1: Quebec flames, smoke drifting south, New York pillars rising, the music building | "Real NASA fire data, real smoke, real air in New York. The music gets louder as the air gets worse." |
-| 0:16 | The thread between the lanes glows, the chord resolves (lock-in) | "When two signals move together, you hear them lock in." |
-| 0:20 | Quick cuts: tides travelling up the coast, snow and cold | "Twelve stories, all measured, nothing invented." |
-| 0:25 | Back to the jukebox | "Anyone, sighted or not, can now hear the planet as one system." |
+| 0:00 | Globe turning, story points glowing | "We are Chopper Team." |
+| 0:02 | Close on the globe | "Earth science shouldn't be limited to sight." |
+| 0:05 | Monsoon: NASA EIC rain map on India, rain falling, sound rising | "Using NASA Earth Information Center visualizations, enriched with open datasets, Earth Jukebox brings our planet's patterns and events to life." |
+| 0:13 | Chart threads lighting up, chord swelling | "We reveal hidden connections and turn them into music. Harmony expresses balance. Dissonance reveals change." |
+| 0:21 | Quick cuts: Ian's landfall, Tonga's shock wave, forests breathing | "Because music is a universal human language." |
+| 0:27 | Back to the globe, title | "Experience Earth Breathing with Chopper Team." |
