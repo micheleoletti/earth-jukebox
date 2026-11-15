@@ -520,7 +520,7 @@ const atmoMat = new THREE.ShaderMaterial({
       float k = (.55 + .45 * uCO2) * uAtmo; gl_FragColor = vec4(c * f * 1.1 * k, f * k * .8); }`,
   side:THREE.BackSide, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false
 });
-globe.add(new THREE.Mesh(new THREE.SphereGeometry(R * 1.09, 96, 64), atmoMat));
+// (the outer atmosphere halo shell was removed at the owner's request)
 
 // ---------- HTML labels projected from 3D ----------
 const LABELS = [];
