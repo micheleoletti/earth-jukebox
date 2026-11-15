@@ -147,7 +147,19 @@ body.exploring #play, body.exploring #rot{display:none}   /* globe screen: the t
 #explore h2{margin:8px 0 6px;font:800 clamp(26px,4.4vw,44px)/1.05 -apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;letter-spacing:-.02em;text-shadow:0 2px 24px rgba(0,0,0,.8)}
 #explore p{margin:0 0 12px;color:#c9d2ea;font-size:14px;text-shadow:0 1px 8px #000}
 #explore .row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;pointer-events:auto}
-body.exploring #panel, body.exploring #title, body.exploring #clock, body.exploring #read{display:none !important}
+/* SCENE TRANSITIONS: the story UI fades and slides out on the globe screen (and while a new story loads), then back in */
+#title, #clock, #ctl{transition:opacity .7s ease, transform .7s ease}
+#panel{transition:box-shadow .6s, opacity .7s ease, transform .7s ease}
+body.exploring #title, body.swapping #title{opacity:0;transform:translateY(-14px);pointer-events:none}
+body.exploring #clock, body.swapping #clock{opacity:0;transform:translateX(-50%) translateY(-14px)}
+body.exploring #panel, body.swapping #panel{opacity:0;transform:translateX(-50%) translateY(40px);pointer-events:none}
+body.exploring #read{display:none !important}
+#explore{transition:opacity .7s ease, transform .7s ease}
+#explore.off{opacity:0;transform:translateX(-50%) translateY(-16px);pointer-events:none}
+#explore.off .row{pointer-events:none}
+#pins{transition:opacity .7s ease}
+#pins.off{opacity:0}
+#pins.off .pin{pointer-events:none !important}
 #pins{position:fixed;inset:0;z-index:3;pointer-events:none}
 .pin{position:absolute;left:0;top:0;transform:translate(-9px,-9px);display:flex;align-items:center;gap:7px;background:none;border:0;padding:0;cursor:pointer;color:var(--text);
   font:600 12px/1.1 -apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;text-shadow:0 1px 6px #000,0 0 2px #000;transition:opacity .35s}
@@ -208,7 +220,7 @@ body.simple #insight{font-size:14px}
 <div id="clock" aria-hidden="true"><div id="month"></div><div id="season"></div></div>
 <div id="read" class="glass" aria-hidden="true"></div>
 <div id="pins" role="list" aria-label="Stories on the globe"></div>
-<div id="explore" hidden>
+<div id="explore" class="off">
   <div class="kick">Earth Jukebox · NASA Space Apps 2026</div>
   <h2>Hear how the planet is connected</h2>
   <p id="exHow">Spin the globe and tap a glowing point to open its story.</p>
@@ -1955,12 +1967,13 @@ const cityLabels = [];
 let selectToken = 0;
 async function select(id, opts = {}){
   const P = STORIES.find(s => s.id === id) || STORIES.find(s => s.id === 'breathing');
+  document.body.classList.add('swapping');
   leaveExplore();
-  if (story && story.P === P) return;
+  if (story && story.P === P){ document.body.classList.remove('swapping'); return; }
   const tok = ++selectToken;
   $('loading').hidden = false; $('loading').textContent = `Loading ${P.title}…`;
   let SD;
-  try { SD = await loadStory(P.id); } catch (e){ console.error(e); $('loading').textContent = `Data for “${P.title}” is not built yet.`; setTimeout(() => $('loading').hidden = true, 2500); return; }
+  try { SD = await loadStory(P.id); } catch (e){ console.error(e); $('loading').textContent = `Data for “${P.title}” is not built yet.`; setTimeout(() => $('loading').hidden = true, 2500); document.body.classList.remove('swapping'); return; }
   if (tok !== selectToken) return;
   $('loading').hidden = true;
   // fade out the old story's layers, dispose when invisible
@@ -1992,9 +2005,10 @@ async function select(id, opts = {}){
   dotsOn = false; dotsBtn.setAttribute('aria-pressed', dotsOn); $('dotctl').hidden = !dotsOn;   // pixel ground removed (debug toggle only)
   rotBtn.setAttribute('aria-pressed', controls.autoRotate);
   if (window.Music) Music.storyChanged(S);
-  setMapNav(true); showHint();
+  setMapNav(true);   // (the navigation hint toast was removed at the owner's request)
   announce(kidOn(S) ? `${P.title}. ${kidOn(S).desc} ${kidHead(S)}` : `${P.title}. ${P.place}, ${P.year}. ${P.desc} ${linkSentence(S)}`);
   if (opts.play !== false) setPlaying(true);
+  setTimeout(() => document.body.classList.remove('swapping'), 380);   // fade the new story's text and chart in
 }
 function disposeStory(S){
   S.layers.forEach(L => { try { L.dispose(); } catch (e){} const i = fading.indexOf(L); if (i >= 0) fading.splice(i, 1); });
@@ -2820,7 +2834,7 @@ function buildPins(){
 }
 const pinTmp = new THREE.Vector3(), pinCam = new THREE.Vector3();
 function placePins(){
-  const box = $('pins'); box.hidden = !exploring; if (!exploring) return;
+  const box = $('pins'); if (!exploring) return;   // fades out via #pins.off; positions freeze while it fades
   const w = innerWidth, h = innerHeight;
   [...box.children].forEach(b => {
     const v = b._v; pinCam.copy(camera.position).sub(v).normalize();
@@ -2834,7 +2848,7 @@ function placePins(){
   });
 }
 function enterExplore(){
-  exploring = true; document.body.classList.add('exploring'); $('explore').hidden = false; closeLanding();
+  exploring = true; document.body.classList.add('exploring'); document.body.classList.remove('swapping'); $('explore').classList.remove('off'); $('pins').classList.remove('off'); closeLanding();
   if (story){ const old = story; old.layers.forEach(L => { L.target = 0; L.lastP = pos; fading.push(L); }); setTimeout(() => disposeStory(old), 1600);
     clearLabels(cityLabels.splice(0)); story = null; LAYERS = []; }
   ++selectToken;
@@ -2844,7 +2858,7 @@ function enterExplore(){
   if (location.hash) history.replaceState(null, '', location.pathname + location.search);
   Music.idle = true; Conn.story(null); Music.apply(true); if (window.Nature) Nature.set({}); if (window.Harmony) Harmony.setOn(false);   // nature sounds and the chord fade out on the globe screen
 }
-function leaveExplore(){ if (!exploring) return; exploring = false; document.body.classList.remove('exploring'); $('explore').hidden = true; Music.idle = false; if (window.Harmony) Harmony.setOn(Music.mode === 'nature'); }
+function leaveExplore(){ if (!exploring) return; exploring = false; document.body.classList.remove('exploring'); $('explore').classList.add('off'); $('pins').classList.add('off'); Music.idle = false; if (window.Harmony) Harmony.setOn(Music.mode === 'nature'); }
 $('globeBtn').onclick = enterExplore;
 $('exList').onclick = openLanding;
 // SOUND ON BY DEFAULT: browsers only allow audio after a user gesture, so the first tap, click, drag or key anywhere starts it
