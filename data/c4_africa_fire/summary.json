@@ -1,0 +1,116 @@
+{
+ "id": "c4_africa_fire",
+ "title": "Africa fire belt",
+ "timebase": "month",
+ "t0": "2019-01-01T00:00Z",
+ "n": 12,
+ "hero": "fires",
+ "partner": "rain",
+ "link": {
+  "r": -0.533,
+  "lag": -2,
+  "n": 10,
+  "r_lag0": 0.109,
+  "sign": "negative",
+  "strength": "moderate",
+  "method": "fire detections per month vs fire-belt rain; Pearson r of monthly values, rain leading fires by 0 to 3 months (12 months, indicative only)",
+  "lag_unit": "months",
+  "curve": [
+   [
+    -3,
+    -0.31
+   ],
+   [
+    -2,
+    -0.533
+   ],
+   [
+    -1,
+    -0.481
+   ],
+   [
+    0,
+    0.109
+   ],
+   [
+    1,
+    0.616
+   ],
+   [
+    2,
+    0.833
+   ],
+   [
+    3,
+    0.413
+   ]
+  ],
+  "lag_search": "lags 0..3 months, partner leading the hero only (negative lag = partner leads)",
+  "lag_steps": -2
+ },
+ "stats": {
+  "fire detections 2019 (32 countries)": 8294524,
+  "peak month (all)": "August",
+  "peak month detections": 1222520,
+  "lowest month": "April",
+  "lowest month detections": 234201,
+  "north of equator detections": 3182853,
+  "south of equator detections": 5111671,
+  "north peak month": "January",
+  "north peak detections": 898747,
+  "south peak month": "August",
+  "south peak detections": 1215859,
+  "months when the south burns more than the north": "May, June, July, August, September, October",
+  "north detections by month, Jan to Dec": "898,747, 583,797, 341,089, 170,099, 63,257, 14,968, 8,115, 6,661, 6,289, 40,090, 290,173, 759,568",
+  "south detections by month, Jan to Dec": "20,736, 36,155, 64,071, 64,102, 219,338, 826,557, 1,161,485, 1,215,859, 921,904, 421,132, 132,214, 28,118",
+  "fire-belt rain by month, north, Jan to Dec (mm)": "13, 21, 51, 77, 123, 144, 186, 219, 195, 172, 52, 22",
+  "fire-belt rain by month, south, Jan to Dec (mm)": "190, 157, 174, 113, 51, 19, 12, 18, 42, 90, 144, 191",
+  "link r, all fires vs belt rain": -0.533,
+  "link lag, rain before fires (months)": 2,
+  "link n (months)": 10,
+  "link r, north fires vs north rain": -0.871,
+  "link lag north (months)": 0,
+  "link n north": 12,
+  "link r, south fires vs south rain": -0.895,
+  "link lag south (months)": 1,
+  "link n south": 11,
+  "all lags, all fires": "rain 3 mo before: r -0.31; rain 2 mo before: r -0.53; rain 1 mo before: r -0.48; rain 0 mo before: r +0.11",
+  "all lags, north": "rain 3 mo before: r +0.46; rain 2 mo before: r +0.04; rain 1 mo before: r -0.67; rain 0 mo before: r -0.87",
+  "all lags, south": "rain 3 mo before: r -0.07; rain 2 mo before: r -0.59; rain 1 mo before: r -0.90; rain 0 mo before: r -0.88",
+  "detections per country (top 8)": "Democratic Republic of the Congo 1,683,572, Angola 1,214,206, Zambia 744,410, Mozambique 695,991, Central African Republic 508,029, South Sudan 440,720, Tanzania 348,642, Nigeria 306,898"
+ },
+ "gaps": [
+  "Fire points: 8,294,524 VIIRS detections in 32 countries in 2019; 30,000 drawn (1 in 276, subsampled evenly in time, so every month keeps its share). Monthly counts use all detections.",
+  "Countries: Nigeria, Chad, Sudan, South Sudan, Central African Republic, Cameroon, Democratic Republic of the Congo, Republic of Congo, Angola, Zambia, Mozambique, Tanzania, Ethiopia, Mali, Burkina Faso, Ghana, Guinea, Cote d'Ivoire, Benin, Gabon, Uganda, Malawi, Zimbabwe, Madagascar, Botswana, Namibia, South Africa, Senegal, Togo, Sierra Leone, Guinea-Bissau, Kenya. Fires in other African countries (for example Liberia, Niger, Equatorial Guinea, Rwanda, Burundi, Eswatini, Lesotho, Somalia) are not included.",
+  "Fire point size is linear in FRP up to 71 MW (99th percentile). Only nominal and high confidence vegetation fire detections; VIIRS passes about twice a day, so short fires and fires under cloud are missed.",
+  "Fire belt for the rain lane = the 5,121 cells of 0.5 deg with at least 20 fire detections in 2019 (2,433 north, 2,688 south of the equator); rain lane = area-weighted mean over them, mm per month.",
+  "Rain field drawn linear from 0 to 400 mm per month with a floor of 25 mm (drier cells drawn bare); wetter cells drawn at full colour.",
+  "Links use only 12 monthly values (8 to 12 pairs depending on the lag), so every r here is indicative, not a statistical test. Fires and rain both follow the seasons, so a strong r mostly says they share the same yearly rhythm.",
+  "Months are calendar months; a point's t is its day of the month scaled into that month."
+ ],
+ "hero_norm": {
+  "min": 234201,
+  "max": 1222520,
+  "method": "cycle: min and max of the 2019 monthly detection count itself"
+ },
+ "sources": [
+  {
+   "name": "VIIRS S-NPP 375 m active fires (VNP14IMG), country yearly CSVs",
+   "producer": "NASA FIRMS (LANCE / EOSDIS)",
+   "resolution": "375 m, about 2 overpasses per day",
+   "kind": "observed",
+   "period": "2019",
+   "baseline": "none (cycle)",
+   "url": "https://firms.modaps.eosdis.nasa.gov/country/"
+  },
+  {
+   "name": "GPM IMERG Final Precipitation L3 1 month 0.1 deg V07 (GPM_3IMERGM)",
+   "producer": "NASA GSFC / GES DISC",
+   "resolution": "0.1 deg monthly, used at 0.5 deg",
+   "kind": "observed",
+   "period": "2019",
+   "baseline": "none (cycle)",
+   "url": "https://doi.org/10.5067/GPM/IMERG/3B-MONTH/07"
+  }
+ ]
+}

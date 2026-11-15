@@ -1,32 +1,35 @@
-# The Planet Breathing (story C4)
+# Earth Jukebox globe (all stories)
 
-A 3D globe showing how northern forests "breathe" carbon dioxide over one year (2021).
-Tree height = how green each place is that month. The atmosphere haze and amber specks follow CO₂ in the air.
-No sound yet.
+`playground/breathing.html` is the whole app: a jukebox landing screen with 12 stories on one 3D globe, with sound.
+(The file name is kept from the first story, C4 "The Planet Breathing".)
 
 ## Start it
 
-The page is a single self-contained file. All data is inlined; only three.js is loaded from a CDN, so you need internet.
-
 ```bash
-open -a Safari playground/breathing.html
+open -a Safari playground/breathing.html          # or Chrome; works from file://
+open "playground/breathing.html#e1_canada_smoke"  # open one story directly (sound starts on the first tap)
 ```
 
-Any browser works. If one refuses to open it from disk, serve the folder instead:
+## What loads when
 
-```bash
-python3 -m http.server 8765 --directory playground
-```
+| File | Size | When |
+|---|---|---|
+| `breathing.html` | ~1.8 MB | first load (page + land mask + Blue Marble backdrop) |
+| `stories/<id>.js` | 0.1 to 4.6 MB | when a story is picked (`<script>` tag, works from file://) |
+| `audio/drums.js`, `audio/synth-layers.js`, `audio/engine-config.js` | ~9 MB | on the first tap that starts sound |
+| three.js 0.160 | ~0.6 MB | CDN (jsdelivr) |
 
-then open http://localhost:8765/breathing.html
+`stories/breathing.js` and `stories/wuhan.js` and the `audio/` bundles are written by `playground/c4-src/build.py`;
+the other story files are written by `data-pipeline/<id>.py` (format: `data-pipeline/STORY_FORMAT.md`).
 
 ## Controls
 
-- Drag to rotate, scroll to zoom.
-- Drag on the chart to scrub through the months.
-- Play / pause button or Space.
+Tap a card (or keys `1`…`0`, `-`, `=`). `Space` play/pause, `←`/`→` step, `Home` restart, `M` mute, `Shift+1…6` layers,
+`R` rotate, `D` pixel ground, `I` sources panel, `J` jukebox, `Esc` close. Drag the globe, drag the chart to scrub, click a lane name to switch a layer.
 
-## Data
+URL options: `?reduced` forces reduced motion, `?perf` logs a frame-time report to the console after 5 s (`window.__perf`).
+
+## Original story C4: data
 
 | Source | What | Used for |
 |---|---|---|

@@ -1,0 +1,295 @@
+{
+ "id": "c1_tides",
+ "title": "Tides: the coast breathes twice a day",
+ "timebase": "hour",
+ "t0": "2024-03-01T00:00Z",
+ "n": 744,
+ "hero": "tides",
+ "partner": "tides",
+ "link": {
+  "r": 0.943,
+  "lag": -3,
+  "n": 741,
+  "r_lag0": 0.057,
+  "sign": "positive",
+  "strength": "strong",
+  "method": "Pearson r, hourly observed water level (raw, tide cycle kept), partner lagged -12..12 h",
+  "lag_unit": "hour",
+  "curve": [
+   [
+    -12,
+    -0.156
+   ],
+   [
+    -11,
+    -0.551
+   ],
+   [
+    -10,
+    -0.799
+   ],
+   [
+    -9,
+    -0.84
+   ],
+   [
+    -8,
+    -0.662
+   ],
+   [
+    -7,
+    -0.308
+   ],
+   [
+    -6,
+    0.136
+   ],
+   [
+    -5,
+    0.557
+   ],
+   [
+    -4,
+    0.85
+   ],
+   [
+    -3,
+    0.943
+   ],
+   [
+    -2,
+    0.813
+   ],
+   [
+    -1,
+    0.49
+   ],
+   [
+    0,
+    0.057
+   ],
+   [
+    1,
+    -0.378
+   ],
+   [
+    2,
+    -0.703
+   ],
+   [
+    3,
+    -0.84
+   ],
+   [
+    4,
+    -0.757
+   ],
+   [
+    5,
+    -0.474
+   ],
+   [
+    6,
+    -0.064
+   ],
+   [
+    7,
+    0.37
+   ],
+   [
+    8,
+    0.715
+   ],
+   [
+    9,
+    0.887
+   ],
+   [
+    10,
+    0.845
+   ],
+   [
+    11,
+    0.594
+   ],
+   [
+    12,
+    0.195
+   ]
+  ],
+  "lag_nearest_zero": -3,
+  "r_nearest_zero": 0.943,
+  "m2_phase_lag_h": -3.09,
+  "residual": {
+   "r": 0.703,
+   "lag": -9,
+   "n": 735,
+   "r_lag0": 0.624,
+   "strength": "strong",
+   "method": "Pearson r, residual (observed minus CO-OPS harmonic prediction), partner lagged -12..12 h",
+   "curve": [
+    [
+     -12,
+     0.666
+    ],
+    [
+     -11,
+     0.678
+    ],
+    [
+     -10,
+     0.698
+    ],
+    [
+     -9,
+     0.703
+    ],
+    [
+     -8,
+     0.693
+    ],
+    [
+     -7,
+     0.689
+    ],
+    [
+     -6,
+     0.7
+    ],
+    [
+     -5,
+     0.696
+    ],
+    [
+     -4,
+     0.68
+    ],
+    [
+     -3,
+     0.673
+    ],
+    [
+     -2,
+     0.672
+    ],
+    [
+     -1,
+     0.655
+    ],
+    [
+     0,
+     0.624
+    ],
+    [
+     1,
+     0.598
+    ],
+    [
+     2,
+     0.589
+    ],
+    [
+     3,
+     0.574
+    ],
+    [
+     4,
+     0.548
+    ],
+    [
+     5,
+     0.525
+    ],
+    [
+     6,
+     0.517
+    ],
+    [
+     7,
+     0.506
+    ],
+    [
+     8,
+     0.472
+    ],
+    [
+     9,
+     0.446
+    ],
+    [
+     10,
+     0.437
+    ],
+    [
+     11,
+     0.426
+    ],
+    [
+     12,
+     0.395
+    ]
+   ]
+  }
+ },
+ "stats": {
+  "Boston tidal range over the month (m)": 4.427,
+  "Boston spring day range (m)": 4.141,
+  "Boston spring day": "10 Mar",
+  "Boston neap day range (m)": 2.387,
+  "Boston neap day": "02 Mar",
+  "spring vs neap range at Boston (%)": 73.5,
+  "New York (The Battery) tidal range (m)": 3.02,
+  "New York high water before Boston (h, M2 fit)": 3.09,
+  "West coast high water travel San Diego to Astoria (h, M2 fit)": 4.1,
+  "best raw lag Boston to New York (h, hourly steps)": -3,
+  "raw r at that lag": 0.943,
+  "residual link r": 0.703,
+  "residual link lag (h)": -9,
+  "largest range station": "Anchorage 11.067 m",
+  "smallest range station": "Key West 0.899 m",
+  "stations": 24
+ },
+ "gaps": [
+  "San Francisco: 238 missing hours (left empty)",
+  "San Francisco: verified hourly heights not offered, used the 6 minute water level sampled on the hour",
+  "Water level relative to each station's own MLLW datum (mean lower low water), so column heights compare tidal swing, not absolute sea level between stations.",
+  "Hourly heights: the true high and low water can fall between hours, so ranges here are slightly smaller than the 6 minute record.",
+  "No cycle removal on the lanes: the tide is the story. The residual link uses observed minus the CO-OPS harmonic prediction.",
+  "Raw lag is limited to whole hours; the sub-hour coast phase uses a least squares M2 (12.42 h) fit per station.",
+  "The tide repeats every 12.42 h, so a raw lag of k hours also matches k plus or minus 12.42 h; the reported lag is the one nearest zero."
+ ],
+ "hero_norm": {
+  "min": -0.34,
+  "max": 4.087,
+  "method": "Boston observed hourly water level min and max over the story month (cycle story: intensity = position in this range)"
+ },
+ "sources": [
+  {
+   "name": "CO-OPS hourly heights (water level)",
+   "producer": "NOAA Center for Operational Oceanographic Products and Services",
+   "resolution": "hourly, 24 tide gauges",
+   "kind": "observed",
+   "period": "2024-03-01 to 2024-03-31 UTC",
+   "baseline": "none (cycle story); datum MLLW per station",
+   "url": "https://api.tidesandcurrents.noaa.gov/api/prod/"
+  },
+  {
+   "name": "CO-OPS tide predictions (harmonic)",
+   "producer": "NOAA CO-OPS",
+   "resolution": "hourly, Boston and The Battery",
+   "kind": "model",
+   "period": "2024-03-01 to 2024-03-31 UTC",
+   "baseline": "used only to compute the non-tidal residual",
+   "url": "https://tidesandcurrents.noaa.gov/web_services_info.html"
+  },
+  {
+   "name": "Moon phases",
+   "producer": "US Naval Observatory",
+   "resolution": "minute",
+   "kind": "observed",
+   "period": "March 2024",
+   "baseline": "none",
+   "url": "https://aa.usno.navy.mil/data/MoonPhases"
+  }
+ ]
+}

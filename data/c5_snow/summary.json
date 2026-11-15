@@ -1,0 +1,110 @@
+{
+ "id": "c5_snow",
+ "title": "Snow follows the cold",
+ "timebase": "month",
+ "t0": "2019-08-01T00:00Z",
+ "n": 12,
+ "hero": "snow",
+ "partner": "temp",
+ "link": {
+  "r": -0.934,
+  "lag": -1,
+  "n": 11,
+  "r_lag0": -0.928,
+  "sign": "negative",
+  "strength": "strong",
+  "method": "Pearson r, monthly NH snow-covered area (MODIS, observed land) vs NH land 2 m temperature (MERRA-2), lags -3..3 months",
+  "lag_unit": "month",
+  "curve": [
+   [
+    -3,
+    -0.031
+   ],
+   [
+    -2,
+    -0.594
+   ],
+   [
+    -1,
+    -0.934
+   ],
+   [
+    0,
+    -0.928
+   ],
+   [
+    1,
+    -0.603
+   ],
+   [
+    2,
+    0.046
+   ],
+   [
+    3,
+    0.639
+   ]
+  ]
+ },
+ "stats": {
+  "max NH snow extent (million km2)": 38.67,
+  "max snow month": "Feb 2020",
+  "min NH snow extent (million km2)": 2.69,
+  "min snow month": "Jul 2020",
+  "NH land temperature at snow max (C)": 1.71,
+  "NH land temperature at snow min (C)": 21.91,
+  "coldest month (NH land, C)": -0.48,
+  "coldest month": "Jan 2020",
+  "months from coldest to max snow": 1,
+  "link r": -0.934,
+  "link lag (months, negative = temperature leads)": -1,
+  "link r at lag 0": -0.928,
+  "unobserved land at snow max, night or cloud (million km2)": 1.99,
+  "largest unobserved land area (million km2)": 10.34,
+  "largest unobserved land month": "Dec 2019"
+ },
+ "gaps": [
+  "MODIS needs daylight and clear sky: land in polar night or under cloud all month has no snow value (empty on the map) and is left out of the snow area, so winter snow area is a lower bound; the unobserved land area is given per month in obs_unobserved_mkm2.",
+  "Greenland and other ice sheets are mapped as snow all year (about 2 million km2 of the summer minimum).",
+  "Snow area = sum over observed land of (snow percent x cell area) at 0.05 deg, 0 to 90N; the map shows the mean snow percent per 1 degree cell.",
+  "Temperature is MERRA-2 reanalysis (a model), monthly mean 2 m air temperature; the land mean uses cells with at least 50% land or land ice.",
+  "One year only: both lanes follow the seasonal cycle, so the correlation (n 9 to 12 months) mostly says that snow follows the cold season; it is not a trend.",
+  "Lag: r is almost the same with no lag and with temperature leading by one month, so the one-month lead is only a hint at monthly resolution.",
+  "MODIS gives fractional snow per cell; snow area here is the fraction-weighted area, which is smaller than the snow extent of binary products such as the Rutgers / NOAA snow charts.",
+  "Monthly steps: the map jumps once a month, nothing is interpolated between months."
+ ],
+ "hero_norm": {
+  "min": 2.69,
+  "max": 38.67,
+  "method": "min..max of the hero series itself (NH snow area, million km2), Aug 2019 to Jul 2020"
+ },
+ "sources": [
+  {
+   "name": "MODIS/Terra Snow Cover Monthly L3 Global 0.05Deg CMG, Version 61 (MOD10CM)",
+   "producer": "NASA, Hall and Riggs, distributed by NSIDC DAAC",
+   "resolution": "0.05 deg, monthly, shown at 1 deg",
+   "kind": "observed",
+   "period": "2019-08 to 2020-07",
+   "baseline": "none (cycle: own min..max)",
+   "url": "https://doi.org/10.5067/MODIS/MOD10CM.061"
+  },
+  {
+   "name": "MERRA-2 tavgM_2d_slv_Nx monthly 2 m air temperature (M2TMNXSLV v5.12.4)",
+   "producer": "NASA GMAO, distributed by GES DISC",
+   "resolution": "0.5 x 0.625 deg, shown at 1 x 1.25 deg, monthly",
+   "kind": "model",
+   "period": "2019-08 to 2020-07",
+   "baseline": "none",
+   "url": "https://doi.org/10.5067/AP1B0BA5PD2K"
+  },
+  {
+   "name": "MERRA-2 constant fields (M2C0NXASM), land and land-ice fraction",
+   "producer": "NASA GMAO, distributed by GES DISC",
+   "resolution": "0.5 x 0.625 deg",
+   "kind": "model",
+   "period": "constant",
+   "baseline": "none",
+   "url": "https://doi.org/10.5067/ME5QX6Q5IGGU"
+  }
+ ]
+}

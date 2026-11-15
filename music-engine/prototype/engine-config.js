@@ -1,0 +1,119 @@
+// Final music-engine mix (captured from the knob player on 2026-11-14). Defaults for anyone opening loop-player.html.
+// Change it by tweaking the player (served by tools/serve.py writes engine-config.json) and copying that JSON here.
+window.ENGINE_CONFIG = {
+ "rhythm": "Tribal 3+3+2",
+ "volume": 0.8,
+ "knob": 0,
+ "synth": {
+  "sub": {
+   "on": 1,
+   "vol": 0.3
+  },
+  "pad": {
+   "on": 1,
+   "vol": 0.7
+  },
+  "chime": {
+   "on": 1,
+   "vol": 0.9
+  },
+  "thump": {
+   "on": 1,
+   "vol": 0.7
+  },
+  "brass": {
+   "on": 1,
+   "vol": 0.9
+  },
+  "braam": {
+   "on": 1,
+   "vol": 0.6
+  },
+  "riser": {
+   "on": 1,
+   "vol": 1
+  },
+  "trumpet": {
+   "on": 1,
+   "vol": 0.5
+  },
+  "shimmer": {
+   "on": 1,
+   "vol": 0.7
+  },
+  "glass": {
+   "on": 1,
+   "vol": 0.35
+  },
+  "bells": {
+   "on": 1,
+   "vol": 0.6
+  },
+  "arp": {
+   "on": 1,
+   "vol": 0.35
+  },
+  "pluck": {
+   "on": 1,
+   "vol": 0.5
+  },
+  "sparkle": {
+   "on": 1,
+   "vol": 0.9
+  }
+ },
+ "drones": {
+  "pads-deneb": {
+   "on": 0,
+   "vol": 0.65,
+   "follow": -0.3,
+   "tone": 0.85,
+   "notes": [
+    "low",
+    "root"
+   ]
+  },
+  "pads-petrichor": {
+   "on": 0,
+   "vol": 0.96,
+   "follow": 0,
+   "tone": 0.74,
+   "notes": [
+    "root",
+    "fifth"
+   ]
+  },
+  "pads-saudade": {
+   "on": 0,
+   "vol": 0.92,
+   "follow": 0.3,
+   "tone": 0.8,
+   "notes": [
+    "root",
+    "fifth"
+   ]
+  },
+  "trumpet-faded": {
+   "on": 0,
+   "vol": 0.35,
+   "follow": 0.6,
+   "tone": 0.9,
+   "notes": [
+    "root",
+    "low",
+    "third",
+    "fifth"
+   ]
+  },
+  "trumpet-steady": {
+   "on": 0,
+   "vol": 0.35,
+   "follow": 0.49,
+   "tone": 0.91,
+   "notes": [
+    "fifth",
+    "root"
+   ]
+  }
+ }
+};

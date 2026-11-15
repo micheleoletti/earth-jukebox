@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Intensity Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a; --card: #121a2c; --card2: #18223a; --line: #24304d;
+    --text: #e8ecf5; --muted: #8893ab; --accent: #f2a65a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: Inter, system-ui, sans-serif; min-height: 100vh; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 16px 60px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; }
+  .sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  .mono { font-family: "JetBrains Mono", monospace; }
+  button { font: inherit; color: inherit; cursor: pointer; border: 1px solid var(--line); background: var(--card); border-radius: 12px; }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  #play { padding: 12px 22px; font-weight: 800; font-size: 16px; background: var(--accent); color: #111; border: none; min-width: 120px; }
+  section { margin-top: 22px; }
+  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 10px; font-weight: 600; }
+  .tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .tab { text-align: left; padding: 14px 16px; transition: border-color .2s, background .2s; }
+  .tab b { display: block; font-size: 16px; }
+  .tab span { display: block; color: var(--muted); font-size: 13px; margin-top: 4px; line-height: 1.35; }
+  .tab .k { float: right; color: var(--muted); font-size: 11px; }
+  .tab[aria-pressed="true"] { border-color: var(--accent); background: var(--card2); }
+  .grid2 { display: grid; grid-template-columns: 1.1fr 1fr; gap: 16px; }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+  .levels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .lvl { padding: 18px 10px; font-weight: 800; font-size: 18px; transition: all .25s; }
+  .lvl small { display: block; font-weight: 400; font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .lvl[aria-pressed="true"] { background: var(--accent); color: #111; border-color: var(--accent); }
+  .lvl[aria-pressed="true"] small { color: #222; }
+  .slider { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+  input[type=range] { flex: 1; accent-color: var(--accent); }
+  .toggles { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .tg { padding: 8px 12px; font-size: 13px; }
+  .tg[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+  .layers { display: flex; flex-direction: column; gap: 8px; }
+  .layer { display: grid; grid-template-columns: 1fr 64px 1.2fr; gap: 10px; align-items: center; font-size: 13px; }
+  .chip { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; text-align: center; padding: 3px 0; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); }
+  .chip.bed { color: #9fc4ff; border-color: #2f4a78; }
+  .chip.pulse { color: #ffcf9f; border-color: #6b4a2a; }
+  .meter { height: 8px; background: #0d1424; border-radius: 99px; overflow: hidden; }
+  .meter i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 99px; }
+  .pads { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .pad { padding: 16px 8px; text-align: center; transition: transform .08s, background .3s, border-color .3s; }
+  .pad b { display: block; font-size: 14px; }
+  .pad span { display: block; font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .pad .k { font-size: 11px; color: var(--muted); margin-top: 6px; }
+  .pad.hit { background: var(--accent); color: #111; border-color: var(--accent); transform: scale(0.97); }
+  .pad.hit span, .pad.hit .k { color: #222; }
+  .taikos { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+  .tk { display: flex; align-items: stretch; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .tk button { border: none; border-radius: 0; background: var(--card); padding: 10px 12px; font-size: 13px; text-align: left; }
+  .tk .use { flex: 1; }
+  .tk .use small { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .tk .aud { border-left: 1px solid var(--line); width: 44px; text-align: center; }
+  .tk.sel { border-color: var(--accent); }
+  .tk.sel .use { background: var(--card2); color: var(--accent); }
+  .tk.off { opacity: .45; }
+  canvas { width: 100%; height: 150px; display: block; border-radius: 12px; background: #070b14; }
+  .note { color: var(--muted); font-size: 12px; line-height: 1.5; margin-top: 10px; }
+  .row { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+  @media (max-width: 760px) {
+    .tabs, .grid2 { grid-template-columns: 1fr; }
+    .pads { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Intensity Lab</h1>
+      <div class="sub">3 sound approaches × 3 intensities. Beds (long shapes) + events (hits). Key of D, 96 BPM, no chord changes, all synthesized.</div>
+    </div>
+    <button id="play" aria-pressed="false">▶ Play</button>
+  </header>
+
+  <section>
+    <h2>Approach</h2>
+    <div class="tabs" id="tabs"></div>
+  </section>
+
+  <section class="grid2">
+    <div class="panel">
+      <h2>Intensity</h2>
+      <div class="levels" id="levels">
+        <button class="lvl" data-x="0">Low<small>beds only · key 1</small></button>
+        <button class="lvl" data-x="0.5">Mid<small>+ pulse · key 2</small></button>
+        <button class="lvl" data-x="1">High<small>+ drums, stabs · key 3</small></button>
+      </div>
+      <div class="slider">
+        <span class="mono" style="font-size:12px;color:var(--muted)">0</span>
+        <input id="xs" type="range" min="0" max="100" value="0" aria-label="Continuous intensity">
+        <span class="mono" id="xv" style="font-size:12px;width:34px;text-align:right">0.00</span>
+      </div>
+      <div class="toggles">
+        <button class="tg" id="sim" aria-pressed="false">Simulate signal (⇧S)</button>
+        <button class="tg" id="auto" aria-pressed="false">Auto events</button>
+        <button class="tg" id="quant" aria-pressed="true">Quantize hits to 1/16</button>
+      </div>
+      <p class="note">Simulate signal: a fake data signal slowly wanders through intensity, so you can hear the layers come and go on their own. Auto events: hits fire at random, more often at high intensity.</p>
+    </div>
+    <div class="panel">
+      <h2>Layers (live gain)</h2>
+      <div class="layers" id="layers"><div class="note">Press Play.</div></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Events (hits) · keys A S D F</h2>
+    <div class="pads" id="pads"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Taiko source (Cinematic Synth: taiko layer, Lightning, riser hit)</h2>
+    <div class="taikos" id="taikos"></div>
+    <p class="note">Real taiko samples from Pixabay (Pixabay Content License: free, no attribution needed). Click a name to use it in the music, ▶ to hear it alone. Big hits are pitched down a bit, soft hits up a bit, from the same sample.</p>
+  </section>
+
+  <section class="panel">
+    <h2>Output</h2>
+    <canvas id="viz" width="1100" height="150"></canvas>
+    <div class="row" style="margin-top:12px">
+      <span>Volume</span><input id="vol" type="range" min="0" max="100" value="75" aria-label="Master volume" style="max-width:240px">
+      <span class="mono" style="margin-left:auto;font-size:11px">Space play/stop · Q W E approach · 1 2 3 intensity</span>
+    </div>
+  </section>
+</div>
+
+<script src="samples/taiko-samples.js"></script>
+<script>
+/* ---------- setup ---------- */
+const BPM = 96, STEP = 60 / BPM / 4;              // one 16th note
+const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+let ctx, master, revIn, dlyIn, analyser, whiteBuf, pinkBuf, brownBuf;
+let running = false, t0 = 0, stepN = 0, nextTime = 0, timer = null;
+let X = 0;                                          // intensity 0..1
+let cur = 0, built = [];
+let autoEv = false, quant = true, sim = false;
+
+function makeNoise(kind) {
+  const len = ctx.sampleRate * 4, b = ctx.createBuffer(1, len, ctx.sampleRate), d = b.getChannelData(0);
+  let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0, br = 0;
+  for (let i = 0; i < len; i++) {
+    const w = Math.random() * 2 - 1;
+    if (kind === 'white') d[i] = w * 0.5;
+    else if (kind === 'pink') {
+      b0 = 0.99886 * b0 + w * 0.0555179; b1 = 0.99332 * b1 + w * 0.0750759; b2 = 0.969 * b2 + w * 0.153852;
+      b3 = 0.8665 * b3 + w * 0.3104856; b4 = 0.55 * b4 + w * 0.5329522; b5 = -0.7616 * b5 - w * 0.016898;
+      d[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * 0.5362) * 0.11; b6 = w * 0.115926;
+    } else { br = (br + 0.02 * w) / 1.02; d[i] = br * 3.5; }
+  }
+  return b;
+}
+function makeIR(dur, decay) {
+  const len = ctx.sampleRate * dur, b = ctx.createBuffer(2, len, ctx.sampleRate);
+  for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay); }
+  return b;
+}
+function init() {
+  ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+  whiteBuf = makeNoise('white'); pinkBuf = makeNoise('pink'); brownBuf = makeNoise('brown');
+  master = ctx.createGain(); master.gain.value = 0.75;
+  const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -18; comp.knee.value = 12; comp.ratio.value = 3; comp.attack.value = 0.01; comp.release.value = 0.25;
+  const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -2; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.002; lim.release.value = 0.1;
+  analyser = ctx.createAnalyser(); analyser.fftSize = 2048;
+  master.connect(comp); comp.connect(lim); lim.connect(analyser); analyser.connect(ctx.destination);
+  // reverb bus
+  revIn = ctx.createGain();
+  const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 160;
+  const conv = ctx.createConvolver(); conv.buffer = makeIR(3.8, 2.4);
+  const revOut = ctx.createGain(); revOut.gain.value = 0.8;
+  revIn.connect(hp); hp.connect(conv); conv.connect(revOut); revOut.connect(master);
+  // dotted-8th delay bus
+  dlyIn = ctx.createGain();
+  const dl = ctx.createDelay(2); dl.delayTime.value = STEP * 3;
+  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2600;
+  const fb = ctx.createGain(); fb.gain.value = 0.38;
+  const dOut = ctx.createGain(); dOut.gain.value = 0.6;
+  dlyIn.connect(dl); dl.connect(lp); lp.connect(fb); fb.connect(dl); lp.connect(dOut); dOut.connect(master); dOut.connect(revIn);
+  built = APPROACHES.map(makeApproach);
+  (window.TAIKO_SAMPLES || []).forEach(S => {
+    const bin = atob(S.b64), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+    ctx.decodeAudioData(u.buffer).then(b => { sampleBufs[S.id] = b; renderTaiko(); }).catch(e => console.error('decode', S.id, e));
+  });
+}
+
+/* ---------- primitives ---------- */
+function osc(type, f, t, dur, dest, detune = 0) { const o = ctx.createOscillator(); o.type = type; o.frequency.setValueAtTime(f, t); if (detune) o.detune.value = detune; o.connect(dest); o.start(t); o.stop(t + dur); return o; }
+function vca(dest, t, peak, a, d) { const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(peak, 0.0002), t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + a + d); g.connect(dest); return g; }
+function noise(t, dur, dest, buf) { const s = ctx.createBufferSource(); s.buffer = buf || whiteBuf; s.loop = true; s.connect(dest); s.start(t, Math.random() * 2); s.stop(t + dur); return s; }
+function filt(type, f, q, dest) { const b = ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q; b.connect(dest); return b; }
+function pan(dest, p) { const s = ctx.createStereoPanner(); s.pan.value = p; s.connect(dest); return s; }
+function lfo(rate, depth, param, type = 'sine') { const o = ctx.createOscillator(); o.type = type; o.frequency.value = rate; const g = ctx.createGain(); g.gain.value = depth; o.connect(g); g.connect(param); o.start(); return o; }
+function shaper(amt) { const ws = ctx.createWaveShaper(), n = 1024, c = new Float32Array(n); for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; c[i] = Math.tanh(amt * x) / Math.tanh(amt); } ws.curve = c; return ws; }
+function droneOsc(type, f, gain, dest, detune = 0) { const o = ctx.createOscillator(); o.type = type; o.frequency.value = f; o.detune.value = detune; const g = ctx.createGain(); g.gain.value = gain; o.connect(g); g.connect(dest); o.start(); return o; }
+
+/* ---------- sounds: soft synth (reel-motion palette) ---------- */
+function pop(d, t, v = 1) { const g = vca(d, t, 0.8 * v, 0.003, 0.16); const o = osc('sine', 520, t, 0.2, g); o.frequency.exponentialRampToValueAtTime(110, t + 0.07); }
+function mallet(d, t, m, v = 1) {
+  const f = mtof(m);
+  osc('sine', f, t, 1.2, vca(d, t, 0.32 * v, 0.002, 1.1));
+  osc('sine', f * 4, t, 0.15, vca(d, t, 0.1 * v, 0.001, 0.12));
+  osc('triangle', f * 2, t, 0.45, vca(d, t, 0.07 * v, 0.002, 0.4));
+}
+function tick(d, t, v = 1) { noise(t, 0.05, filt('highpass', 7000, 0.7, vca(d, t, 0.25 * v, 0.0008, 0.035))); }
+function chime(d, t, m, v = 1) {
+  const f = mtof(m);
+  [[1, 1, 3], [2, 0.45, 2.2], [3.01, 0.25, 1.4], [4.17, 0.16, 1], [5.43, 0.1, 0.7]].forEach(([r, a, dec]) => osc('sine', f * r, t, dec + 0.1, vca(d, t, 0.16 * v * a, 0.002, dec)));
+}
+function whoosh(d, t, dur = 1.4, v = 1, lo = 250, hi = 3200) {
+  const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.55 * v, t + dur * 0.55); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  const p = ctx.createStereoPanner(); p.pan.setValueAtTime(-0.8, t); p.pan.linearRampToValueAtTime(0.8, t + dur);
+  g.connect(p); p.connect(d);
+  const bp = filt('bandpass', lo, 2.5, g); bp.frequency.setValueAtTime(lo, t); bp.frequency.exponentialRampToValueAtTime(hi, t + dur * 0.55); bp.frequency.exponentialRampToValueAtTime(lo * 2, t + dur);
+  noise(t, dur + 0.05, bp, pinkBuf);
+}
+
+/* ---------- sounds: cinematic synth ---------- */
+let taikoSrc = 'synth'; const sampleBufs = {};
+function playSample(buf, d, t, v, rate = 1) { const s = ctx.createBufferSource(); s.buffer = buf; s.playbackRate.value = rate; const g = ctx.createGain(); g.gain.value = v; s.connect(g); g.connect(d); s.start(t); return s; }
+function taiko(d, t, v = 1, big = false) {
+  const buf = sampleBufs[taikoSrc];
+  if (buf) { playSample(buf, d, t, Math.min(1.4, v * (big ? 1.15 : 0.9)), big ? 0.88 : (v < 0.6 ? 1.12 : 1)); return; }
+  const dec = big ? 2.2 : 1.1;
+  const o = osc('sine', big ? 90 : 105, t, dec + 0.1, vca(d, t, 0.9 * v, 0.002, dec)); o.frequency.exponentialRampToValueAtTime(big ? 40 : 50, t + 0.3);
+  noise(t, 0.12, filt('lowpass', 1200, 0.8, vca(d, t, 0.35 * v, 0.001, 0.09)));
+  const o3 = osc('sine', 190, t, 0.3, vca(d, t, 0.22 * v, 0.001, 0.25)); o3.frequency.exponentialRampToValueAtTime(95, t + 0.2);
+}
+function braam(d, t, dur = 3, v = 1) {
+  const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.32 * v, t + 0.12); g.gain.setTargetAtTime(0.0001, t + dur * 0.45, dur * 0.18); g.connect(d);
+  const ws = shaper(2.5); ws.connect(g);
+  const pre = ctx.createGain(); pre.gain.value = 0.18; pre.connect(ws);
+  const lp = filt('lowpass', 140, 5, pre); lp.frequency.setValueAtTime(140, t); lp.frequency.exponentialRampToValueAtTime(2200, t + 0.3); lp.frequency.exponentialRampToValueAtTime(260, t + dur);
+  [26, 38, 45, 50].forEach(m => [-9, 0, 9].forEach(dt => osc('sawtooth', mtof(m), t, dur + 0.4, lp, dt)));
+}
+function stab(d, t, v = 1) {
+  const g = vca(d, t, 0.3 * v, 0.006, 0.45); const ws = shaper(2); ws.connect(g);
+  const pre = ctx.createGain(); pre.gain.value = 0.2; pre.connect(ws);
+  const lp = filt('lowpass', 300, 3, pre); lp.frequency.setValueAtTime(300, t); lp.frequency.exponentialRampToValueAtTime(4200, t + 0.03); lp.frequency.exponentialRampToValueAtTime(500, t + 0.4);
+  [50, 57, 62].forEach(m => [-12, 0, 12].forEach(dt => osc('sawtooth', mtof(m), t, 0.55, lp, dt)));
+}
+function riser(d, t, dur, v = 1) {
+  const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.3 * v, t + dur); g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.08); g.connect(d);
+  const bp = filt('bandpass', 300, 1.5, g); bp.frequency.setValueAtTime(300, t); bp.frequency.exponentialRampToValueAtTime(7000, t + dur);
+  noise(t, dur + 0.1, bp);
+  const g2 = ctx.createGain(); g2.gain.setValueAtTime(0.0001, t); g2.gain.exponentialRampToValueAtTime(0.05 * v, t + dur); g2.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.08); g2.connect(d);
+  const o = osc('sawtooth', mtof(50), t, dur + 0.1, g2); o.frequency.exponentialRampToValueAtTime(mtof(74), t + dur);
+  taiko(d, t + dur, 1.1, true);
+}
+function ost(d, t, m, v, cut) {
+  const g = vca(d, t, 0.2 * v, 0.003, 0.17);
+  const lp = filt('lowpass', cut, 5, g); lp.frequency.setValueAtTime(cut * 2.5, t); lp.frequency.exponentialRampToValueAtTime(cut, t + 0.12);
+  osc('sawtooth', mtof(m), t, 0.22, lp, -6); osc('sawtooth', mtof(m), t, 0.22, lp, 6);
+}
+function thump(d, t, v = 1) { const o = osc('sine', 75, t, 0.5, vca(d, t, 0.8 * v, 0.003, 0.45)); o.frequency.exponentialRampToValueAtTime(42, t + 0.2); }
+
+/* ---------- sounds: earth textures ---------- */
+function droplet(d, t, m, v = 1) { const f = mtof(m); const o = osc('sine', f, t, 0.18, vca(pan(d, Math.random() * 1.6 - 0.8), t, 0.2 * v, 0.001, 0.14)); o.frequency.exponentialRampToValueAtTime(f * 1.7, t + 0.06); }
+function thunder(d, t, v = 1) {
+  noise(t, 0.15, filt('highpass', 1500, 0.7, vca(d, t, 0.45 * v, 0.001, 0.12)));
+  const g = ctx.createGain(); g.connect(d); g.gain.setValueAtTime(0.0001, t);
+  let tt = t + 0.04; g.gain.exponentialRampToValueAtTime(0.8 * v, tt);
+  for (let k = 1; k < 14; k++) { tt = t + 0.04 + k * 0.26; g.gain.linearRampToValueAtTime(Math.max(0.002, 0.8 * v * (1 - k / 14) * (0.35 + Math.random() * 0.65)), tt); }
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 4.2);
+  const lp = filt('lowpass', 700, 0.8, g); lp.frequency.setValueAtTime(700, t); lp.frequency.exponentialRampToValueAtTime(90, t + 3.8);
+  noise(t, 4.3, lp, brownBuf);
+  const o = osc('sine', 60, t, 1.6, vca(d, t, 0.6 * v, 0.005, 1.5)); o.frequency.exponentialRampToValueAtTime(32, t + 1.2);
+}
+function shaker(d, t, v) { noise(t, 0.08, filt('bandpass', 6000, 1.2, vca(d, t, 0.16 * v, 0.004, 0.05))); }
+function tom(d, t, m, v) {
+  const f = mtof(m); const o = osc('sine', f * 1.5, t, 0.45, vca(d, t, 0.6 * v, 0.002, 0.4)); o.frequency.exponentialRampToValueAtTime(f, t + 0.08);
+  noise(t, 0.04, filt('lowpass', 3000, 0.7, vca(d, t, 0.12 * v, 0.001, 0.03)));
+}
+
+/* ---------- approaches ---------- */
+const ARP = [62, 66, 69, 71, 74, 76, 78, 81];       // D major pentatonic-ish, D4..A5
+const HIGH = [74, 76, 78, 81, 83, 86, 88];
+const APPROACHES = [
+  {
+    name: 'Soft Synth', accent: '#f2a65a', key: 'Q',
+    desc: 'Reel-motion palette: warm Dmaj9 pad, mallet plucks, pops, ticks, chimes, whooshes.',
+    events: [
+      { label: 'Lightning', sound: 'pop burst', fn: (A, t) => { pop(A.ev, t, 1.2); pop(A.ev, t + STEP, 0.6); pop(A.ev, t + STEP * 2, 0.3); } },
+      { label: 'Wind gust', sound: 'whoosh', fn: (A, t) => whoosh(A.ev, t, 1.6, 0.9) },
+      { label: 'Pollution spike', sound: 'pluck run', fn: (A, t) => [62, 66, 69, 74, 78, 81].forEach((m, k) => mallet(A.ev, t + k * STEP * 0.5, m, 0.6 + k * 0.08)) },
+      { label: 'Sparkle', sound: 'chime', fn: (A, t) => { chime(A.ev, t, 81); chime(A.ev, t + STEP * 3, 86, 0.5); } },
+    ],
+    build(A) {
+      const pad = A.layer('pad', 'Warm pad (Dmaj9)', 'bed', [0.55, 0.6, 0.65], { rev: 0.45 });
+      A.padLP = filt('lowpass', 700, 0.7, pad); lfo(0.07, 250, A.padLP.frequency);
+      [50, 57, 61, 64, 66].forEach(m => [-7, 7].forEach(dt => droneOsc('sawtooth', mtof(m), 0.05, A.padLP, dt)));
+      const sub = A.layer('sub', 'Sub drone (D2)', 'bed', [0.45, 0.5, 0.55]);
+      droneOsc('sine', mtof(38), 0.6, sub);
+      const air = A.layer('air', 'Air shimmer', 'bed', [0.3, 0.18, 0.12], { rev: 0.8 });
+      const trem = ctx.createGain(); trem.gain.value = 0.5; trem.connect(air); lfo(0.2, 0.4, trem.gain);
+      droneOsc('sine', mtof(86), 0.05, trem); droneOsc('sine', mtof(93), 0.035, trem);
+      A.arpC = A.layer('arp', 'Mallet arpeggio', 'pulse', [0, 0.65, 0.7], { rev: 0.3, dly: 0.35 });
+      A.tickC = A.layer('tick', 'Ticks', 'pulse', [0, 0.35, 0.6], { pan: 0.3 });
+      A.popC = A.layer('pop', 'Soft pops (kick)', 'pulse', [0, 0, 0.85], { rev: 0.15 });
+    },
+    onIntensity(A, x, now) { A.padLP.frequency.setTargetAtTime(600 + x * 1800, now, 0.8); },
+    step(A, i, t, x) {
+      const s = i % 16, dense = x > 0.75;
+      if (A.on('arp') && (dense || s % 2 === 0)) {
+        const seq = [0, 2, 4, 1, 3, 5, 2, 6, 4, 7, 5, 3], k = dense ? i : (i / 2 | 0);
+        mallet(A.arpC, t, ARP[seq[k % seq.length]], s % 4 === 0 ? 1 : 0.7);
+      }
+      if (A.on('tick') && (dense || s % 2 === 0)) tick(A.tickC, t, s % 4 === 2 ? 1 : 0.45);
+      if (A.on('pop')) { if (s === 0 || s === 8) pop(A.popC, t, 1); else if (s === 6 || s === 14) pop(A.popC, t, 0.45); }
+    },
+  },
+  {
+    name: 'Cinematic Synth', accent: '#e8665c', key: 'W',
+    desc: 'Trailer-style, all synthesized: sub + saw drone on D, ostinato, taiko, brass stabs, braams.',
+    events: [
+      { label: 'Lightning', sound: 'big taiko', fn: (A, t) => { taiko(A.ev, t, 1.2, true); taiko(A.ev, t + STEP * 2, 0.6); } },
+      { label: 'Wind gust', sound: 'riser → hit', fn: (A, t) => riser(A.ev, t, STEP * 16) },
+      { label: 'Pollution spike', sound: 'braam', fn: (A, t) => braam(A.ev, t, 3) },
+      { label: 'Sparkle', sound: 'brass stab', fn: (A, t) => stab(A.ev, t, 1) },
+    ],
+    build(A) {
+      const sub = A.layer('sub', 'Sub drone (D1 + D2)', 'bed', [0.55, 0.6, 0.65]);
+      droneOsc('sine', mtof(26), 0.7, sub); droneOsc('sine', mtof(38), 0.4, sub);
+      const low = A.layer('low', 'Saw drone (D2 A2 D3)', 'bed', [0.35, 0.45, 0.55], { rev: 0.4 });
+      A.lowLP = filt('lowpass', 300, 3, low); lfo(0.05, 80, A.lowLP.frequency);
+      [38, 45, 50].forEach(m => [-8, 8].forEach(dt => droneOsc('sawtooth', mtof(m), 0.06, A.lowLP, dt)));
+      A.ostC = A.layer('ost', 'Ostinato (on D)', 'pulse', [0, 0.5, 0.7], { rev: 0.25, pan: -0.15 });
+      A.hbC = A.layer('hb', 'Low pulse drum', 'pulse', [0, 0.6, 0.5], { rev: 0.2 });
+      A.tkC = A.layer('taiko', 'Taiko ensemble', 'pulse', [0, 0, 0.85], { rev: 0.35 });
+      A.brC = A.layer('brass', 'Brass stabs', 'pulse', [0, 0, 0.55], { rev: 0.4, pan: 0.15 });
+      A.bmC = A.layer('braam', 'Braam swell (every 4 bars)', 'pulse', [0, 0.35, 0.6], { rev: 0.5 });
+    },
+    onIntensity(A, x, now) { A.lowLP.frequency.setTargetAtTime(250 + x * 1000, now, 0.8); },
+    step(A, i, t, x) {
+      const s = i % 16, bar = i / 16 | 0, dense = x > 0.75;
+      if (A.on('ost') && (dense || s % 2 === 0)) {
+        const pat = [50, 50, 62, 50, 50, 62, 50, 57, 50, 50, 62, 50, 50, 62, 57, 50];
+        ost(A.ostC, t, pat[s], s % 4 === 0 ? 1 : 0.65, 500 + x * 2000);
+      }
+      if (A.on('hb') && (s === 0 || s === 8)) thump(A.hbC, t, s === 0 ? 1 : 0.7);
+      if (A.on('taiko')) {
+        const pat = { 0: 1, 3: 0.45, 6: 0.7, 8: 0.9, 10: 0.4, 11: 0.55, 14: 0.75 };
+        let v = pat[s]; if (bar % 4 === 3 && s >= 12) v = 0.5 + 0.15 * (s - 12);
+        if (v) taiko(A.tkC, t, v, s === 0 && bar % 4 === 0);
+      }
+      if (A.on('brass')) { if (s === 0 && bar % 2 === 0) stab(A.brC, t, 1); if (s === 6 && bar % 2 === 1) stab(A.brC, t, 0.7); }
+      if (A.on('braam') && s === 0 && bar % 4 === 0) braam(A.bmC, t, STEP * 32);
+    },
+  },
+  {
+    name: 'Earth Textures', accent: '#4fc3b3', key: 'E',
+    desc: 'Organic, nature-like: wind noise, FM bell drone, deep hum, droplets, heartbeat, toms, thunder.',
+    events: [
+      { label: 'Lightning', sound: 'thunder', fn: (A, t) => thunder(A.ev, t, 1) },
+      { label: 'Wind gust', sound: 'gust', fn: (A, t) => whoosh(A.ev, t, 2.6, 0.8, 200, 1400) },
+      { label: 'Pollution spike', sound: 'deep bell toll', fn: (A, t) => { chime(A.ev, t, 50, 1.6); chime(A.ev, t, 38, 1.2); } },
+      { label: 'Sparkle', sound: 'droplet burst', fn: (A, t) => { for (let k = 0; k < 8; k++) droplet(A.ev, t + k * STEP * 0.5, HIGH[Math.random() * HIGH.length | 0], 0.6 + Math.random() * 0.4); } },
+    ],
+    build(A) {
+      const wind = A.layer('wind', 'Wind (filtered noise)', 'bed', [0.6, 0.6, 0.7], { rev: 0.3 });
+      A.windBP = [];
+      [-0.6, 0.6].forEach((pn, k) => {
+        const s = ctx.createBufferSource(); s.buffer = pinkBuf; s.loop = true;
+        const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 500; bp.Q.value = 1.2; lfo(0.045 + k * 0.02, 280, bp.frequency);
+        const g = ctx.createGain(); g.gain.value = 1.2; lfo(0.09 + k * 0.03, 0.5, g.gain);
+        s.connect(bp); bp.connect(g); g.connect(pan(wind, pn)); s.start(0, k * 1.3); A.windBP.push(bp);
+      });
+      const bell = A.layer('bell', 'FM bell drone (D3)', 'bed', [0.35, 0.35, 0.3], { rev: 0.6 });
+      [[50, 0.12], [62, 0.05]].forEach(([m, a]) => {
+        const f = mtof(m), c = ctx.createOscillator(); c.frequency.value = f;
+        const md = ctx.createOscillator(); md.frequency.value = f * 2;
+        const mg = ctx.createGain(); mg.gain.value = f * 0.8; lfo(0.03, f * 0.7, mg.gain);
+        md.connect(mg); mg.connect(c.frequency);
+        const g = ctx.createGain(); g.gain.value = a; lfo(0.06, a * 0.4, g.gain);
+        c.connect(g); g.connect(bell); c.start(); md.start();
+      });
+      const hum = A.layer('hum', 'Deep hum (D1 + D2)', 'bed', [0.35, 0.45, 0.55]);
+      droneOsc('sine', mtof(26), 0.6, hum); const tri = droneOsc('triangle', mtof(38), 0.25, hum); lfo(0.15, 6, tri.detune);
+      A.dropC = A.layer('drops', 'Droplets (random)', 'pulse', [0, 0.55, 0.6], { rev: 0.5, dly: 0.25 });
+      A.heartC = A.layer('heart', 'Heartbeat', 'pulse', [0, 0.55, 0.7], { rev: 0.15 });
+      A.shC = A.layer('shaker', 'Rain shaker', 'pulse', [0, 0, 0.5], { pan: 0.25 });
+      A.tomC = A.layer('toms', 'Earth toms (D, A)', 'pulse', [0, 0, 0.7], { rev: 0.3 });
+    },
+    onIntensity(A, x, now) { A.windBP.forEach(bp => bp.frequency.setTargetAtTime(350 + x * 900, now, 1)); },
+    step(A, i, t, x) {
+      const s = i % 16;
+      if (A.on('drops') && Math.random() < 0.08 + 0.22 * x) droplet(A.dropC, t, HIGH[Math.random() * HIGH.length | 0], 0.6 + Math.random() * 0.4);
+      if (A.on('heart') && (s === 0 || (x > 0.75 && s === 8))) { thump(A.heartC, t, 0.9); thump(A.heartC, t + 0.17, 0.55); }
+      if (A.on('shaker')) shaker(A.shC, t, [1, 0.35, 0.6, 0.35][s % 4]);
+      if (A.on('toms')) { const e = { 0: [38, 1], 7: [45, 0.6], 10: [38, 0.8], 13: [50, 0.5] }[s]; if (e) tom(A.tomC, t, e[0], e[1]); }
+    },
+  },
+];
+
+function makeApproach(def) {
+  const A = { def, layers: {}, list: [], fadeEnd: 0 };
+  A.out = ctx.createGain(); A.rv = ctx.createGain(); A.dy = ctx.createGain();
+  [A.out, A.rv, A.dy].forEach(g => g.gain.value = 0);
+  A.out.connect(master); A.rv.connect(revIn); A.dy.connect(dlyIn);
+  A.chan = (o = {}) => {
+    const g = ctx.createGain(); g.gain.value = o.gain ?? 1;
+    const p = ctx.createStereoPanner(); p.pan.value = o.pan || 0; g.connect(p); p.connect(A.out);
+    if (o.rev) { const s = ctx.createGain(); s.gain.value = o.rev; p.connect(s); s.connect(A.rv); }
+    if (o.dly) { const s = ctx.createGain(); s.gain.value = o.dly; p.connect(s); s.connect(A.dy); }
+    return g;
+  };
+  A.layer = (key, label, kind, levels, o = {}) => {
+    const g = A.chan(o); g.gain.value = 0;
+    const L = { key, label, kind, levels, g, target: 0, shown: 0 }; A.layers[key] = L; A.list.push(L); return g;
+  };
+  A.on = k => A.layers[k].target > 0.01;
+  A.ev = A.chan({ rev: 0.4, dly: 0.15 });
+  def.build(A);
+  return A;
+}
+
+/* ---------- intensity + approach switching ---------- */
+const interp = (l, x) => x <= 0.5 ? l[0] + (l[1] - l[0]) * (x / 0.5) : l[1] + (l[2] - l[1]) * ((x - 0.5) / 0.5);
+function applyIntensity() {
+  if (!ctx) return;
+  const now = ctx.currentTime;
+  built.forEach(A => {
+    A.list.forEach(L => { L.target = interp(L.levels, X); L.g.gain.setTargetAtTime(L.target, now, 0.5); });
+    A.def.onIntensity && A.def.onIntensity(A, X, now);
+  });
+}
+function selectApproach(k) {
+  cur = k;
+  document.documentElement.style.setProperty('--accent', APPROACHES[k].accent);
+  [...document.querySelectorAll('.tab')].forEach((b, i) => b.setAttribute('aria-pressed', i === k));
+  renderPads(); renderLayers();
+  if (!ctx) return;
+  const now = ctx.currentTime;
+  built.forEach((A, i) => {
+    const on = i === k ? 1 : 0;
+    [A.out, A.rv, A.dy].forEach(g => g.gain.setTargetAtTime(on, now, 0.7));
+    if (!on) A.fadeEnd = now + 3.5;
+  });
+}
+function setX(x, fromSim = false) {
+  X = Math.max(0, Math.min(1, x));
+  xs.value = Math.round(X * 100); xv.textContent = X.toFixed(2);
+  [...document.querySelectorAll('.lvl')].forEach(b => b.setAttribute('aria-pressed', Math.abs(+b.dataset.x - X) < 0.17));
+  if (!fromSim && sim) toggleSim(false);
+  applyIntensity();
+}
+
+/* ---------- clock ---------- */
+function schedule() {
+  const now = ctx.currentTime;
+  while (nextTime < now + 0.12) {
+    built.forEach((A, i) => { if (i === cur || now < A.fadeEnd) A.def.step(A, stepN, nextTime, X); });
+    if (autoEv) {
+      const p = 0.004 + 0.03 * X * X;
+      if (Math.random() < p) {
+        const w = [0.2 + X, 1, 0.3 + 0.6 * X, 1 - 0.5 * X], sum = w.reduce((a, b) => a + b);
+        let r = Math.random() * sum, e = 0; while (r > w[e]) { r -= w[e]; e++; }
+        fire(e, nextTime);
+      }
+    }
+    stepN++; nextTime = t0 + stepN * STEP;
+  }
+}
+function eventTime() {
+  const now = ctx.currentTime;
+  if (!quant) return now + 0.005;
+  const n = Math.ceil((now + 0.015 - t0) / STEP); return t0 + n * STEP;
+}
+function fire(e, t) {
+  const A = built[cur]; APPROACHES[cur].events[e].fn(A, t);
+  const pad = document.querySelectorAll('.pad')[e];
+  setTimeout(() => { pad.classList.add('hit'); setTimeout(() => pad.classList.remove('hit'), 160); }, Math.max(0, (t - ctx.currentTime) * 1000));
+}
+async function play() {
+  if (!ctx) init();
+  if (running) { running = false; clearInterval(timer); await ctx.suspend(); playBtn.textContent = '▶ Play'; playBtn.setAttribute('aria-pressed', 'false'); return; }
+  await ctx.resume();
+  if (stepN === 0) { t0 = ctx.currentTime + 0.1; nextTime = t0; selectApproach(cur); applyIntensity(); }
+  running = true; timer = setInterval(schedule, 25); schedule();
+  playBtn.textContent = '■ Stop'; playBtn.setAttribute('aria-pressed', 'true');
+}
+
+/* ---------- simulate signal ---------- */
+let simTarget = 0, simNext = 0, simTimer = null;
+function toggleSim(on = !sim) {
+  sim = on; simBtn.setAttribute('aria-pressed', on);
+  clearInterval(simTimer);
+  if (on) simTimer = setInterval(() => {
+    const now = performance.now();
+    if (now > simNext) { simTarget = Math.random(); simNext = now + 4000 + Math.random() * 6000; }
+    setX(X + (simTarget - X) * 0.03, true);
+  }, 120);
+}
+
+/* ---------- UI ---------- */
+const $ = id => document.getElementById(id);
+const playBtn = $('play'), xs = $('xs'), xv = $('xv'), simBtn = $('sim');
+$('tabs').innerHTML = APPROACHES.map((a, i) => `<button class="tab" aria-pressed="${i === 0}"><span class="k mono">${a.key}</span><b>${a.name}</b><span>${a.desc}</span></button>`).join('');
+[...document.querySelectorAll('.tab')].forEach((b, i) => b.onclick = () => selectApproach(i));
+[...document.querySelectorAll('.lvl')].forEach(b => b.onclick = () => setX(+b.dataset.x));
+xs.oninput = () => setX(xs.value / 100);
+simBtn.onclick = () => toggleSim();
+$('auto').onclick = e => { autoEv = !autoEv; e.currentTarget.setAttribute('aria-pressed', autoEv); };
+$('quant').onclick = e => { quant = !quant; e.currentTarget.setAttribute('aria-pressed', quant); };
+$('vol').oninput = e => { if (master) master.gain.setTargetAtTime(e.target.value / 100, ctx.currentTime, 0.05); };
+playBtn.onclick = play;
+
+function renderPads() {
+  $('pads').innerHTML = APPROACHES[cur].events.map((e, i) => `<button class="pad"><b>${e.label}</b><span>${e.sound}</span><div class="k mono">${'ASDF'[i]}</div></button>`).join('');
+  [...document.querySelectorAll('.pad')].forEach((b, i) => b.onclick = () => trigger(i));
+}
+function renderTaiko() {
+  const list = [{ id: 'synth', label: 'Synth taiko', author: 'generated in page' }, ...(window.TAIKO_SAMPLES || [])];
+  $('taikos').innerHTML = list.map(S => {
+    const ready = S.id === 'synth' || sampleBufs[S.id];
+    return `<div class="tk ${S.id === taikoSrc ? 'sel' : ''} ${ready || !ctx ? '' : 'off'}" data-id="${S.id}"><button class="use">${S.label}<small>${S.author}</small></button><button class="aud" aria-label="Audition ${S.label}">▶</button></div>`;
+  }).join('');
+  [...document.querySelectorAll('.tk')].forEach(el => {
+    const id = el.dataset.id;
+    el.querySelector('.use').onclick = () => { taikoSrc = id; renderTaiko(); };
+    el.querySelector('.aud').onclick = async () => {
+      if (!ctx) init(); await ctx.resume();
+      const t = ctx.currentTime + 0.02;
+      if (id === 'synth') taiko(master, t, 1.1, true);
+      else if (sampleBufs[id]) playSample(sampleBufs[id], master, t, 1);
+    };
+  });
+}
+async function trigger(i) { if (!running) await play(); fire(i, eventTime()); }
+function renderLayers() {
+  if (!ctx) return;
+  $('layers').innerHTML = built[cur].list.map(L => `<div class="layer"><span>${L.label}</span><span class="chip ${L.kind}">${L.kind}</span><div class="meter"><i data-k="${L.key}"></i></div></div>`).join('');
+}
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' && e.key !== ' ') return;
+  const k = e.key.toLowerCase();
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (k === 's' && e.shiftKey) toggleSim();
+  else if (k === ' ') { e.preventDefault(); play(); }
+  else if ('123'.includes(k) && k) setX((+k - 1) / 2);
+  else if ('qwe'.includes(k) && k) selectApproach('qwe'.indexOf(k));
+  else if ('asdf'.includes(k) && k) trigger('asdf'.indexOf(k));
+});
+
+/* ---------- visuals ---------- */
+const cv = $('viz'), cx = cv.getContext('2d');
+function draw() {
+  requestAnimationFrame(draw);
+  const W = cv.width = cv.clientWidth * devicePixelRatio, H = cv.height = cv.clientHeight * devicePixelRatio;
+  cx.clearRect(0, 0, W, H);
+  const acc = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+  if (ctx && built[cur]) {
+    built[cur].list.forEach(L => { L.shown += (L.target - L.shown) * 0.06; const el = document.querySelector(`.meter i[data-k="${L.key}"]`); if (el) el.style.width = Math.min(100, L.shown / 0.85 * 100) + '%'; });
+  }
+  if (!analyser) return;
+  const d = new Uint8Array(analyser.fftSize); analyser.getByteTimeDomainData(d);
+  let rms = 0; for (const v of d) rms += ((v - 128) / 128) ** 2; rms = Math.sqrt(rms / d.length);
+  const g = cx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, W / 2);
+  g.addColorStop(0, acc + '55'); g.addColorStop(1, 'transparent');
+  cx.globalAlpha = Math.min(1, rms * 6); cx.fillStyle = g; cx.fillRect(0, 0, W, H); cx.globalAlpha = 1;
+  cx.strokeStyle = acc; cx.lineWidth = 2 * devicePixelRatio; cx.beginPath();
+  for (let i = 0; i < d.length; i++) { const x = i / d.length * W, y = H / 2 + (d[i] - 128) / 128 * H * 0.45; i ? cx.lineTo(x, y) : cx.moveTo(x, y); }
+  cx.stroke();
+}
+draw();
+renderPads();
+renderTaiko();
+setX(0);
+</script>
+</body>
+</html>

@@ -101,7 +101,8 @@ def write_textures(ndvi, out, size=(2048, 1024)):
     for f in glob.glob(os.path.join(d, "ndvi_*.png")):
         os.remove(f)
     land = np.any(~np.isnan(ndvi), axis=0)
-    Image.fromarray((land * 255).astype(np.uint8)).save(os.path.join(d, "landmask.png"), optimize=True)
+    # 4096 wide: the safe max texture size on all devices; resampling keeps soft (anti-aliased) coast edges
+    Image.fromarray((land * 255).astype(np.uint8)).resize((4096, 2048), Image.LANCZOS).save(os.path.join(d, "landmask.png"), optimize=True)
     for m in range(12):
         rgb = ndvi_colour(fill_water(ndvi[m])).astype(np.uint8)
         Image.fromarray(rgb).resize(size, Image.LANCZOS).save(os.path.join(d, f"ndvi_{YEAR}_{m + 1:02d}.jpg"), quality=86)

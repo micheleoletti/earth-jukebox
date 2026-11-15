@@ -1,0 +1,134 @@
+{
+ "id": "e3_tonga",
+ "title": "Hunga Tonga: the sky rang like a bell",
+ "timebase": "hour",
+ "t0": "2022-01-14T00:00Z",
+ "n": 120,
+ "hero": "pressure",
+ "partner": "gauges",
+ "link": {
+  "r": 0.051,
+  "lag": 5,
+  "n": 1710,
+  "lag_unit": "hour",
+  "sign": "positive",
+  "strength": "weak",
+  "method": "pooled Pearson r over 15 stations: ERA5 high-passed pressure anomaly at each gauge vs that gauge's hourly max |water residual|, gauge lagged 0..6 h",
+  "curve": [
+   [
+    0,
+    0.001
+   ],
+   [
+    1,
+    -0.022
+   ],
+   [
+    2,
+    -0.04
+   ],
+   [
+    3,
+    -0.02
+   ],
+   [
+    4,
+    0.011
+   ],
+   [
+    5,
+    0.051
+   ],
+   [
+    6,
+    0.014
+   ]
+  ],
+  "lanes": {
+   "r": -0.039,
+   "lag": 3,
+   "n": 116,
+   "strength": "weak",
+   "method": "lanes: mean ERA5 anomaly vs mean gauge envelope"
+  },
+  "arrivals": {
+   "r": 0.858,
+   "n": 15,
+   "median_water_after_air_h": 2.47,
+   "method": "Pearson r across gauges: ERA5 pressure peak time vs time the gauge residual first exceeds 5 x its pre-eruption sd"
+  }
+ },
+ "stats": {
+  "eruption (USGS us7000gc8r)": "15 Jan 2022 04:14:45 UTC",
+  "reference front speed (m/s)": 315.0,
+  "ERA5 transect speed fit, 4000 to 8520 km (m/s, model)": 334.3,
+  "ERA5 transect mean peak (hPa, model)": 0.41,
+  "ERA5 transect mean arrival error vs 315 m/s (h)": 0.21,
+  "gauge points with ERA5 peak of 0.5 hPa or more near the expected time": "7 of 15",
+  "ERA5 peak timing vs expected, median (h)": -0.07,
+  "Honolulu ERA5 peak (hPa)": 0.39,
+  "Honolulu expected arrival (h after eruption)": 4.43,
+  "San Francisco ERA5 peak (hPa)": 0.6,
+  "largest water oscillation": "Port San Luis 1.284 m at 13.25 h after the eruption",
+  "pooled link r (pressure to water)": 0.051,
+  "pooled link lag (h)": 5,
+  "arrival link r (air peak time vs first water response, across gauges)": 0.86,
+  "median water response after the ERA5 air peak (h)": 2.47,
+  "stations": 15
+ },
+ "gaps": [
+  "ERA5 is a reanalysis model, hourly at about 31 km. Barometers measured a jump of roughly 2 hPa thousands of km away; ERA5 shows a smoothed bump of about 0.3 to 0.8 hPa, so the pressure lane underestimates the real wave.",
+  "The pressure lane is high-passed (fit of 24, 12 and 8 hour cycles plus a slow trend removed, then a 7 hour running mean removed): weather fronts also leave wiggles of a few tenths of hPa.",
+  "The ring is a reference front drawn at 315 m/s from the USGS origin, not data.",
+  "Gauge series = hourly maximum of |water level minus tide prediction minus a 3 hour running mean|, from 6 minute data: it keeps the amplitude of the oscillation, not its sign.",
+  "Ocean tsunami waves travel slower than the air wave; at far gauges the water responds first to the air wave (meteotsunami), then to the ocean tsunami hours later.",
+  "The ERA5 point is the 0.25 deg grid cell nearest each gauge.",
+  "The arrival link (r across gauges) is high partly because both the air wave and the water response arrive later at farther gauges; the hour by hour pooled link is weak because the water keeps ringing for many hours after a one hour air pulse.",
+  "Key West and San Juan (Atlantic side) show no clear ERA5 pressure peak; their water response comes about a day later."
+ ],
+ "hero_norm": {
+  "mean": 0.0042,
+  "sd": 0.2545,
+  "n": 420,
+  "years": "2022-01-14 00Z to 2022-01-15 04Z (pre-eruption)",
+  "method": "high-passed ERA5 anomaly at the 15 points before the eruption (no other baseline year makes sense for one eruption)"
+ },
+ "sources": [
+  {
+   "name": "USGS earthquake catalog, event us7000gc8r (volcanic eruption)",
+   "producer": "USGS",
+   "resolution": "event origin",
+   "kind": "observed",
+   "period": "2022-01-15",
+   "baseline": "none",
+   "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000gc8r"
+  },
+  {
+   "name": "ERA5 hourly surface pressure",
+   "producer": "ECMWF Copernicus C3S, served by Open-Meteo",
+   "resolution": "0.25 deg, hourly",
+   "kind": "model",
+   "period": "2022-01-11 to 2022-01-21 (fit), shown 14 to 18 Jan",
+   "baseline": "pre-eruption hours",
+   "url": "https://open-meteo.com/en/docs/historical-weather-api"
+  },
+  {
+   "name": "CO-OPS water level and tide predictions",
+   "producer": "NOAA CO-OPS",
+   "resolution": "6 minute, 15 gauges",
+   "kind": "observed",
+   "period": "2022-01-14 to 2022-01-18",
+   "baseline": "tide prediction removed; datum MSL",
+   "url": "https://tidesandcurrents.noaa.gov/"
+  },
+  {
+   "name": "Lamb wave speed (reference front)",
+   "producer": "Matoza et al. 2022, Science 377, 95 to 100; Wright et al. 2022, Nature 609, 741 to 746",
+   "resolution": "published speed about 310 to 320 m/s",
+   "kind": "observed",
+   "period": "2022-01-15",
+   "baseline": "none",
+   "url": "https://doi.org/10.1126/science.abo7063"
+  }
+ ]
+}

@@ -1,0 +1,300 @@
+{
+ "id": "c2_city_breathing",
+ "title": "City breathing: Milan's daily NO2 pulse",
+ "timebase": "hour",
+ "t0": "2019-01-13T23:00Z",
+ "n": 672,
+ "hero": "milan",
+ "partner": "wind",
+ "link": {
+  "r": -0.287,
+  "lag": -4,
+  "n": 668,
+  "r_lag0": -0.276,
+  "sign": "negative",
+  "strength": "weak",
+  "method": "Pearson r, hourly Milan NO2 (EEA, mean of stations) vs ERA5 Milan 10 m wind speed, daily cycle removed from both (mean of each hour of day subtracted), lags -12..12 h",
+  "lag_unit": "hour",
+  "curve": [
+   [
+    -12,
+    -0.245
+   ],
+   [
+    -11,
+    -0.251
+   ],
+   [
+    -10,
+    -0.255
+   ],
+   [
+    -9,
+    -0.254
+   ],
+   [
+    -8,
+    -0.252
+   ],
+   [
+    -7,
+    -0.252
+   ],
+   [
+    -6,
+    -0.264
+   ],
+   [
+    -5,
+    -0.28
+   ],
+   [
+    -4,
+    -0.287
+   ],
+   [
+    -3,
+    -0.285
+   ],
+   [
+    -2,
+    -0.284
+   ],
+   [
+    -1,
+    -0.279
+   ],
+   [
+    0,
+    -0.276
+   ],
+   [
+    1,
+    -0.272
+   ],
+   [
+    2,
+    -0.262
+   ],
+   [
+    3,
+    -0.245
+   ],
+   [
+    4,
+    -0.231
+   ],
+   [
+    5,
+    -0.215
+   ],
+   [
+    6,
+    -0.192
+   ],
+   [
+    7,
+    -0.172
+   ],
+   [
+    8,
+    -0.163
+   ],
+   [
+    9,
+    -0.162
+   ],
+   [
+    10,
+    -0.16
+   ],
+   [
+    11,
+    -0.166
+   ],
+   [
+    12,
+    -0.177
+   ]
+  ],
+  "r_raw": -0.265,
+  "lag_raw": -4,
+  "n_raw": 668,
+  "strength_raw": "weak",
+  "curve_raw": [
+   [
+    -12,
+    -0.221
+   ],
+   [
+    -11,
+    -0.238
+   ],
+   [
+    -10,
+    -0.251
+   ],
+   [
+    -9,
+    -0.251
+   ],
+   [
+    -8,
+    -0.247
+   ],
+   [
+    -7,
+    -0.242
+   ],
+   [
+    -6,
+    -0.25
+   ],
+   [
+    -5,
+    -0.263
+   ],
+   [
+    -4,
+    -0.265
+   ],
+   [
+    -3,
+    -0.258
+   ],
+   [
+    -2,
+    -0.255
+   ],
+   [
+    -1,
+    -0.251
+   ],
+   [
+    0,
+    -0.253
+   ],
+   [
+    1,
+    -0.256
+   ],
+   [
+    2,
+    -0.252
+   ],
+   [
+    3,
+    -0.234
+   ],
+   [
+    4,
+    -0.214
+   ],
+   [
+    5,
+    -0.19
+   ],
+   [
+    6,
+    -0.165
+   ],
+   [
+    7,
+    -0.147
+   ],
+   [
+    8,
+    -0.14
+   ],
+   [
+    9,
+    -0.138
+   ],
+   [
+    10,
+    -0.133
+   ],
+   [
+    11,
+    -0.14
+   ],
+   [
+    12,
+    -0.158
+   ]
+  ],
+  "r_daily_means": -0.396,
+  "n_daily_means": 28,
+  "r_milan_paris_cycle_removed": -0.242,
+  "lag_milan_paris": 12,
+  "partner_choice": "wind: it is the physical driver (dilution) of the Milan NO2 swings; Paris shares the human rhythm but not the weather, so Milan vs Paris is reported only as a comparison"
+ },
+ "stats": {
+  "Milan NO2 mean, 4 weeks (ug/m3)": 66.2,
+  "Milan weekday mean (ug/m3)": 69.4,
+  "Milan weekend mean (ug/m3)": 58.1,
+  "Milan weekend vs weekday (%)": -16.3,
+  "Milan Sunday vs weekday (%)": -23.8,
+  "Milan Saturday vs weekday (%)": -8.9,
+  "Milan weekday morning peak, hour (local)": 9,
+  "Milan morning peak (ug/m3)": 85.7,
+  "Milan weekday evening peak, hour (local)": 19,
+  "Milan evening peak (ug/m3)": 80.2,
+  "Milan weekday low, hour (local)": 4,
+  "Milan weekday low (ug/m3)": 52.0,
+  "Milan mean daily range, max minus min (ug/m3)": 49.1,
+  "Milan highest hour (ug/m3)": 152.2,
+  "Milan highest hour (local)": "2019-02-08 09:00",
+  "Paris NO2 mean (ug/m3)": 45.4,
+  "Paris weekend vs weekday (%)": -34.2,
+  "Paris weekday morning peak, hour (local)": 8,
+  "Paris weekday evening peak, hour (local)": 18,
+  "Milan wind mean (m/s)": 1.53,
+  "link r, cycle removed": -0.287,
+  "link lag (h)": -4,
+  "link r, raw": -0.265,
+  "link r, daily means": -0.396
+ },
+ "gaps": [
+  "Station hours flagged invalid by the agencies are empty and stay empty; a city lane is empty in any hour where fewer than half of its stations report.",
+  "Stations kept only with at least 80% valid hours in the 4 weeks.",
+  "EEA times are taken as the station time zone (UTC+01, no daylight saving), which is local time in January and February.",
+  "Wind is ERA5 reanalysis (a model) at about 25 km, read at points from the Open-Meteo archive; streaks are 3-hourly on a 1 degree grid.",
+  "Both NO2 and wind have a daily rhythm (traffic and the night inversion), so the raw hourly correlation partly reflects the clock; the headline link removes the mean daily cycle from both.",
+  "Paris has no 2019 holiday in this window either; its lane is a comparison, not a partner of Milan."
+ ],
+ "hero_norm": {
+  "min": 17.0,
+  "max": 152.2,
+  "method": "min..max of the hero series itself (Milan hourly NO2, mean of stations), 4 weeks"
+ },
+ "sources": [
+  {
+   "name": "EEA air quality e-reporting, verified hourly NO2 (E1a), Milan",
+   "producer": "European Environment Agency, data from ARPA Lombardia via ISPRA",
+   "resolution": "hourly, urban stations",
+   "kind": "observed",
+   "period": "2019-01-14 to 2019-02-10",
+   "baseline": "none (cycle: own min..max)",
+   "url": "https://eeadmz1-downloads-webapp.azurewebsites.net/"
+  },
+  {
+   "name": "EEA air quality e-reporting, verified hourly NO2 (E1a), Paris",
+   "producer": "European Environment Agency, data from Airparif via LCSQA",
+   "resolution": "hourly, urban stations",
+   "kind": "observed",
+   "period": "2019-01-14 to 2019-02-10",
+   "baseline": "none",
+   "url": "https://eeadmz1-downloads-webapp.azurewebsites.net/"
+  },
+  {
+   "name": "ERA5 hourly 10 m wind (via Open-Meteo historical weather API)",
+   "producer": "ECMWF Copernicus Climate Change Service, served by Open-Meteo",
+   "resolution": "0.25 deg model grid, hourly",
+   "kind": "model",
+   "period": "2019-01-14 to 2019-02-10",
+   "baseline": "none",
+   "url": "https://open-meteo.com/en/docs/historical-weather-api"
+  }
+ ]
+}

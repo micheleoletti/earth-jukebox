@@ -1,0 +1,162 @@
+{
+ "id": "c3_monsoon",
+ "title": "India monsoon 2019: rain, wind, green",
+ "timebase": "day",
+ "t0": "2019-01-01T00:00Z",
+ "n": 365,
+ "hero": "rain",
+ "partner": "green",
+ "link": {
+  "r": 0.858,
+  "lag": 1,
+  "n": 35,
+  "r_lag0": 0.551,
+  "sign": "positive",
+  "strength": "strong",
+  "method": "Pearson r, monthly means 2018-2020 (36 months): all-India land rain (IMERG Final monthly, observed) vs India land NDVI (MODIS MOD13C2), NDVI lagging by 0 to 3 months; best positive lag reported",
+  "lag_unit": "month",
+  "curve": [
+   [
+    -3,
+    -0.779
+   ],
+   [
+    -2,
+    -0.522
+   ],
+   [
+    -1,
+    -0.002
+   ],
+   [
+    0,
+    0.551
+   ],
+   [
+    1,
+    0.858
+   ],
+   [
+    2,
+    0.814
+   ],
+   [
+    3,
+    0.532
+   ]
+  ],
+  "lag_steps": 30,
+  "lag_days_note": "lag_steps = lag in months x 30.44 days (monthly resolution, so +/- about 15 days)"
+ },
+ "stats": {
+  "monsoon onset (all-India 7-day mean rain stays at or above 5 mm/day for 15 days)": "2019-06-22",
+  "end of wet spell (7-day mean back below 5 mm/day for 15 days)": "2019-09-29",
+  "Arabian Sea 850 hPa westerly sets in (7-day mean u above 5 m/s for 30 days)": "2019-06-07",
+  "peak rain day": "2019-08-06",
+  "peak all-India rain (mm/day)": 18.49,
+  "June to September mean all-India rain (mm/day)": 8.06,
+  "2019 all-India land rain total (mm)": 1267.0,
+  "wettest month (mm/day)": 9.91,
+  "wettest month": "July",
+  "driest month (mm/day)": 0.38,
+  "driest month": "January",
+  "strongest 7-day Arabian Sea westerly (m/s)": 20.8,
+  "strongest westerly week starts": "2019-08-05",
+  "Arabian Sea u850 January mean (m/s)": -3.7,
+  "NDVI min month": "May",
+  "NDVI min": 0.336,
+  "NDVI max month": "September",
+  "NDVI max": 0.657,
+  "link r rain to NDVI (monthly, 2018-2020)": 0.858,
+  "link lag (months, NDVI after rain)": 1,
+  "link lag (days, approx)": 30,
+  "link n (months)": 35,
+  "link r at lag 0": 0.551,
+  "link r rain to NDVI, 2019 only": 0.881,
+  "link lag 2019 only (months)": 1,
+  "link r rain to GRACE water (monthly)": 0.868,
+  "link lag rain to GRACE water (months)": 2,
+  "link n rain to GRACE water (months)": 29,
+  "GRACE water min month 2019": "June",
+  "GRACE water min (cm)": -30.4,
+  "GRACE water max month 2019": "October",
+  "GRACE water max (cm)": 7.1,
+  "rain map 8-day mean 99.5th percentile (mm/day)": 45.0
+ },
+ "gaps": [
+  "Onset here is a data rule on the all-India land mean (7-day mean rain at or above 5 mm/day for 15 days in a row), not the India Meteorological Department onset over Kerala; the all-India mean rises later than the first rains in the south.",
+  "Rain is IMERG Final Run v07: satellite microwave and infrared estimates calibrated to monthly rain gauges; daily values over mountains (Himalaya, Western Ghats) carry larger errors.",
+  "Rain map frames are 8-day means at 0.5 deg (46 frames, the last covers 5 days); the colour scale is linear 0 to 40 mm/day with a floor of 1 mm/day, values above 40 are drawn at full colour (99.5th percentile of the frames: 45.0 mm/day).",
+  "Wind is MERRA-2 reanalysis (a model) at 850 hPa, about 1.5 km up, daily means of hourly fields, drawn as 7-day means at 1 x 1.25 deg; the lane is the Arabian Sea box 10 to 20 N, 65 to 72.5 E.",
+  "NDVI is a monthly MODIS composite: the lane holds each month's value on every day of that month (a step, not interpolated); the map changes once a month. Cells need at least half of their 0.05 deg pixels to be valid land.",
+  "India means use 0.5 deg cells whose centre falls inside the Natural Earth 1:50m outline of India (cosine latitude weighted); coastal cells and small islands are partly missed.",
+  "The rain to NDVI link uses monthly means 2018 to 2020 (36 months), rain from the IMERG Final monthly product (GPM_3IMERGM v07), the lane and 2019 numbers from the daily product. Both follow the seasonal cycle, so the correlation mostly says that vegetation greens after the rains; it is not a measure of year to year sensitivity. Lag resolution is one month (about 30 days).",
+  "GRACE and GRACE-FO water thickness is shown on a 0.5 deg grid but its real resolution is about 300 km (3 deg mascons); it measures total water (soil, ground, surface) change relative to a 2004 to 2009 mean, not rain.",
+  "Wind at 850 hPa does not exist where the ground is higher than that level (Tibetan Plateau, high Himalaya): those cells are empty, not filled.",
+  "Water map: linear scale -40 to 40 cm (anomaly against the 2004 to 2009 mean), no floor; values beyond are drawn at the end colours. The lane holds each GRACE-FO solution over its own date range.",
+  "GRACE / GRACE-FO months without a solution, skipped in the rain to water link: 2018-01, 2018-02, 2018-03, 2018-04, 2018-05, 2018-08, 2018-09 (the GRACE to GRACE-FO gap and early GRACE-FO months).",
+  "Water lane: 10 days of 2019 fall between GRACE-FO solution date ranges and stay empty (not bridged).",
+  "Link strength: rain to NDVI r 0.858 (strong) at 1 month lag, n 35; rain to GRACE water r 0.868 (strong) at 2 month lag, n 29."
+ ],
+ "hero_norm": {
+  "min": 0.01,
+  "max": 18.49,
+  "method": "min..max of the hero series itself (all-India land mean daily rain, IMERG, 2019)"
+ },
+ "sources": [
+  {
+   "name": "GPM IMERG Final Precipitation L3 1 day 0.1 x 0.1 deg V07 (GPM_3IMERGDF)",
+   "producer": "NASA GPM (Huffman et al.), distributed by GES DISC",
+   "resolution": "0.1 deg daily, shown at 0.5 deg, 8-day map frames",
+   "kind": "observed",
+   "period": "2019",
+   "baseline": "none (cycle: own min..max)",
+   "url": "https://doi.org/10.5067/GPM/IMERGDF/DAY/07"
+  },
+  {
+   "name": "GPM IMERG Final Precipitation L3 1 month 0.1 x 0.1 deg V07 (GPM_3IMERGM)",
+   "producer": "NASA GPM (Huffman et al.), distributed by GES DISC",
+   "resolution": "0.1 deg monthly, India mean at 0.5 deg",
+   "kind": "observed",
+   "period": "2018-01 to 2020-12 (link only)",
+   "baseline": "none",
+   "url": "https://doi.org/10.5067/GPM/IMERG/3B-MONTH/07"
+  },
+  {
+   "name": "MERRA-2 tavg1_2d_slv_Nx hourly single-level diagnostics, U850 and V850 (M2T1NXSLV v5.12.4)",
+   "producer": "NASA GMAO, distributed by GES DISC",
+   "resolution": "0.5 x 0.625 deg hourly, shown at 1 x 1.25 deg, daily lane, 7-day map frames",
+   "kind": "model",
+   "period": "2019",
+   "baseline": "none",
+   "url": "https://doi.org/10.5067/VJAFPLI1CSIV"
+  },
+  {
+   "name": "MODIS/Terra Vegetation Indices Monthly L3 Global 0.05 deg CMG V061 (MOD13C2)",
+   "producer": "NASA LP DAAC (Didan)",
+   "resolution": "0.05 deg monthly, shown at 0.5 deg",
+   "kind": "observed",
+   "period": "2018-01 to 2020-12 (map 2019)",
+   "baseline": "none",
+   "url": "https://doi.org/10.5067/MODIS/MOD13C2.061"
+  },
+  {
+   "name": "JPL GRACE and GRACE-FO Mascon Ocean, Ice, and Hydrology Equivalent Water Height RL06.3 CRI v04",
+   "producer": "NASA JPL (Watkins et al., Wiese et al.), distributed by PO.DAAC",
+   "resolution": "about 3 deg (300 km) mascons on a 0.5 deg grid, monthly",
+   "kind": "observed",
+   "period": "2017-10 to 2020-12 (map 2019)",
+   "baseline": "anomaly relative to the 2004.0 to 2009.999 mean",
+   "url": "https://doi.org/10.5067/TEMSC-3JC634"
+  },
+  {
+   "name": "Natural Earth 1:50m admin 0 countries (India outline for land means)",
+   "producer": "Natural Earth",
+   "resolution": "1:50 million",
+   "kind": "observed",
+   "period": "static",
+   "baseline": "none",
+   "url": "https://www.naturalearthdata.com/downloads/50m-cultural-vectors/"
+  }
+ ]
+}
