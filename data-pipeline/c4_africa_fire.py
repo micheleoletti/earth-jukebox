@@ -74,21 +74,20 @@ def main():
     cnt_n = np.array([int(((mon == m) & north).sum()) for m in range(N)])
     cnt_s = np.array([int(((mon == m) & south).sum()) for m in range(N)])
     frp_m = [float(frp[mon == m].sum()) for m in range(N)]
-    sub = FH.even_subsample(tfrac, 30000)
-    sub = sub[np.argsort(tfrac[sub])]
-    vmax_frp = float(np.percentile(frp, 99))
+    P, cell = FH.merge_points(lat, lon, tfrac, frp, 80000, t_bin=.25)
+    vmax_frp = float(np.percentile(P["v"], 99))
     total = len(lat)
-    gaps.append(f"Fire points: {total:,} VIIRS detections in {len(COUNTRIES)} countries in 2019; {len(sub):,} drawn "
-                f"(1 in {total / len(sub):.0f}, subsampled evenly in time, so every month keeps its share). Monthly counts use all detections.")
+    gaps.append(f"Fire points: all {total:,} VIIRS detections in {len(COUNTRIES)} countries in 2019, merged into {len(P['v']):,} flames "
+                f"(detections within {cell * 111:.0f} km and the same quarter month become one flame at the place of their strongest detection, size = their summed FRP).")
     gaps.append(f"Countries: {', '.join(c.replace('_', ' ').replace('Cote d Ivoire', "Cote d'Ivoire") for c in COUNTRIES)}. Fires in other African countries (for example Liberia, Niger, Equatorial Guinea, Rwanda, Burundi, Eswatini, Lesotho, Somalia) are not included.")
-    gaps.append(f"Fire point size is linear in FRP up to {vmax_frp:.0f} MW (99th percentile). Only nominal and high confidence vegetation fire detections; "
+    gaps.append(f"Flame size is linear in summed FRP up to {vmax_frp:.0f} MW (99th percentile). Only nominal and high confidence vegetation fire detections; "
                 "VIIRS passes about twice a day, so short fires and fires under cloud are missed.")
     fires = {"id": "fires", "type": "points", "name": "Fires (Africa)",
              "what": "VIIRS SNPP active fire detections, NASA FIRMS (observed); lane = detections per month",
              "color": "#ff7a1a", "unit": "detections per month", "series": [int(x) for x in cnt],
              "series_north": [int(x) for x in cnt_n], "series_south": [int(x) for x in cnt_s],
-             "points": {"lat": SL.clean(lat[sub], 2), "lon": SL.clean(lon[sub], 2), "t": SL.clean(tfrac[sub], 3),
-                        "v": SL.clean(frp[sub], 1)},
+             "points": {"lat": SL.clean(P["lat"], 2), "lon": SL.clean(P["lon"], 2), "t": SL.clean(P["t"], 3),
+                        "v": SL.clean(P["v"], 1), "n": [int(x) for x in P["n"]]},
              "vmax": round(vmax_frp, 1)}
 
     # ------------------------------------------------------------ rain (IMERG, observed)

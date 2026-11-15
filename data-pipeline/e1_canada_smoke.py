@@ -56,13 +56,11 @@ def main():
     cnt_qc = [int((qc & (day == d)).sum()) for d in range(NDAY)]
     idx = np.where(sel)[0]
     n_fire = len(idx)
-    sub = idx[FH.even_subsample(tt[idx], 30000)]
-    sub = sub[np.argsort(tt[sub])]
-    if n_fire > 30000:
-        gaps.append(f"Fire points: {n_fire:,} VIIRS detections in Quebec and Ontario in the window; 30,000 drawn, "
-                    f"subsampled evenly in time. The daily FRP totals use all {n_fire:,}.")
-    vmax_frp = float(np.percentile(f["frp"][sel], 99))
-    gaps.append(f"Fire point size is linear in FRP up to {vmax_frp:.0f} MW (99th percentile); the few larger detections are drawn at that size.")
+    P, cell = FH.merge_points(f["lat"][idx], f["lon"][idx], tt[idx], f["frp"][idx], 30000, t_bin=12.0)
+    gaps.append(f"Fire points: all {n_fire:,} VIIRS detections in Quebec and Ontario in the window, merged into {len(P['v']):,} flames "
+                f"(detections within {cell * 111:.0f} km and the same 12 hours become one flame at the place of their strongest detection, size = their summed FRP).")
+    vmax_frp = float(np.percentile(P["v"], 99))
+    gaps.append(f"Flame size is linear in summed FRP up to {vmax_frp:.0f} MW (99th percentile); the few larger flames are drawn at that size.")
     gaps.append("Quebec and Ontario are approximated by boxes (Quebec 45-63N, 79.5-57W without New Brunswick and Nova Scotia, which also takes in a little of Labrador; Ontario 41.6-57N, 95.2-79.5W). Only nominal and high confidence vegetation fire detections are used.")
     gaps.append("VIIRS sees each place about twice a day (around 01:30 and 13:30 local), so fire points arrive in two bursts per day, and smoke or cloud can hide fires.")
     fires = {
@@ -70,8 +68,8 @@ def main():
         "what": "VIIRS SNPP active fire detections, NASA FIRMS (observed); lane = daily total fire radiative power",
         "color": "#ff7a1a", "unit": "MW (daily total FRP)",
         "series": SL.clean(daily_hold(frp_all), 1),
-        "points": {"lat": SL.clean(f["lat"][sub], 3), "lon": SL.clean(f["lon"][sub], 3),
-                   "t": SL.clean(tt[sub], 2), "v": SL.clean(f["frp"][sub], 1)},
+        "points": {"lat": SL.clean(P["lat"], 3), "lon": SL.clean(P["lon"], 3),
+                   "t": SL.clean(P["t"], 2), "v": SL.clean(P["v"], 1), "n": [int(x) for x in P["n"]]},
         "vmax": round(vmax_frp, 1), "series_label": "daily total (held across the day's hours)",
     }
 

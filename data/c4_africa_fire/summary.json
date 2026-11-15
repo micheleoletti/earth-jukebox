@@ -80,9 +80,9 @@
   "detections per country (top 8)": "Democratic Republic of the Congo 1,683,572, Angola 1,214,206, Zambia 744,410, Mozambique 695,991, Central African Republic 508,029, South Sudan 440,720, Tanzania 348,642, Nigeria 306,898"
  },
  "gaps": [
-  "Fire points: 8,294,524 VIIRS detections in 32 countries in 2019; 30,000 drawn (1 in 276, subsampled evenly in time, so every month keeps its share). Monthly counts use all detections.",
+  "Fire points: all 8,294,524 VIIRS detections in 32 countries in 2019, merged into 60,123 flames (detections within 99 km and the same quarter month become one flame at the place of their strongest detection, size = their summed FRP).",
   "Countries: Nigeria, Chad, Sudan, South Sudan, Central African Republic, Cameroon, Democratic Republic of the Congo, Republic of Congo, Angola, Zambia, Mozambique, Tanzania, Ethiopia, Mali, Burkina Faso, Ghana, Guinea, Cote d'Ivoire, Benin, Gabon, Uganda, Malawi, Zimbabwe, Madagascar, Botswana, Namibia, South Africa, Senegal, Togo, Sierra Leone, Guinea-Bissau, Kenya. Fires in other African countries (for example Liberia, Niger, Equatorial Guinea, Rwanda, Burundi, Eswatini, Lesotho, Somalia) are not included.",
-  "Fire point size is linear in FRP up to 71 MW (99th percentile). Only nominal and high confidence vegetation fire detections; VIIRS passes about twice a day, so short fires and fires under cloud are missed.",
+  "Flame size is linear in summed FRP up to 17221 MW (99th percentile). Only nominal and high confidence vegetation fire detections; VIIRS passes about twice a day, so short fires and fires under cloud are missed.",
   "Fire belt for the rain lane = the 5,121 cells of 0.5 deg with at least 20 fire detections in 2019 (2,433 north, 2,688 south of the equator); rain lane = area-weighted mean over them, mm per month.",
   "Rain field drawn linear from 0 to 400 mm per month with a floor of 25 mm (drier cells drawn bare); wetter cells drawn at full colour.",
   "Links use only 12 monthly values (8 to 12 pairs depending on the lag), so every r here is indicative, not a statistical test. Fires and rain both follow the seasons, so a strong r mostly says they share the same yearly rhythm.",

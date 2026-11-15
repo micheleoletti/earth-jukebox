@@ -3,9 +3,10 @@
 Origin: USGS event us7000gc8r (volcanic eruption, 2022-01-15 04:14:45 UTC, 20.546S 175.390W).
 Layers
   ring      expected Lamb wave front at 315 m/s from the origin (reference, not data; published 310 to 320 m/s)
-  pressure  ERA5 hourly surface pressure (model) via Open-Meteo at the grid cell nearest 15 CO-OPS gauges,
-            high-passed: least squares fit (constant, linear, quadratic, 24 h, 12 h, 8 h harmonics) over 11-21 Jan removed,
-            then a centred 7 hour running mean removed. Lane = mean anomaly of the 15 points.
+  pressure  REAL barometers: NOAA CO-OPS 6 minute air pressure at the same 15 tide gauges, minus a centred 3 hour running
+            mean (keeps the sudden jump of the pressure wave, removes weather). Station series = hourly maximum |jump| (hPa).
+            Lane = the largest jump among the stations each hour (every passing of the wave shows as a spike).
+            ERA5 hourly surface pressure (model) is kept only as a check (it smooths the wave to a few tenths of hPa).
   gauges    NOAA CO-OPS 6 minute water level minus the CO-OPS tide prediction, minus a centred 3 hour running mean
             (keeps periods under ~3 h: tsunami / meteotsunami). Station series = hourly maximum |residual| (amplitude envelope).
 Check: a transect of 30 ERA5 points along the great circle Tonga to San Francisco (Hovmoller), arrival fit.
@@ -139,7 +140,8 @@ def main():
         if m is None or p is None:
             print("drop", sid)
             continue
-        metas[sid], wl[sid] = m, (x, p)
+        _, ap = coops(sid, "air_pressure")
+        metas[sid], wl[sid] = m, (x, p, ap)
     sids = list(metas)
     pts = era5([float(metas[s]["lat"]) for s in sids], [float(metas[s]["lon"]) for s in sids], "era5_gauges.json")
 
@@ -153,7 +155,7 @@ def main():
         eta = ev["t"] + dist * 1000 / SPEED / 3600  # story hours
         raw = np.array(x["hourly"]["surface_pressure"], float)
         r_full = highpass_p(raw)
-        r = r_full[OFF:OFF + N]
+        r = r_full[OFF:OFF + N]          # ERA5 (model) anomaly: kept as a check only
         k0 = int(round(eta))
         w = np.arange(k0 - 1, k0 + 2)
         kk = int(w[np.nanargmax(r[w])])
@@ -161,7 +163,21 @@ def main():
         pre = r[:int(ev["t"])]
         sd_pre = float(np.nanstd(pre))
         # gauges
-        obs, pred = wl[sid]
+        obs, pred, ap = wl[sid]
+        # real barometer: jump = 6 min pressure minus its centred 3 hour running mean; hourly max |jump|
+        if ap is not None and np.isfinite(ap).sum() > N * 5:
+            bj = ap - running_mean_nan(ap, 31)
+            benv = np.array([np.nanmax(np.abs(bj[h * 10:(h + 1) * 10])) if np.isfinite(bj[h * 10:(h + 1) * 10]).sum() >= 6 else np.nan for h in range(N)])
+            e0b = int(ev["t"] * 10)
+            sd_b = float(np.nanstd(bj[:e0b]))
+            win = np.arange(max(0, int((eta - 1.5) * 10)), min(N * 10, int((eta + 1.5) * 10)))
+            kb_i = int(win[np.nanargmax(np.abs(bj[win]))]) if np.isfinite(bj[win]).any() else None
+            ovb = np.where(np.abs(bj[e0b:]) > 5 * sd_b)[0]
+            b_first = (e0b + ovb[0]) / 10 if len(ovb) else None
+            b_peak = float(abs(bj[kb_i])) if kb_i is not None else None
+            b_peak_t = kb_i / 10 if kb_i is not None else None
+        else:
+            benv = np.full(N, np.nan); sd_b = b_first = b_peak = b_peak_t = None
         res = obs - pred
         hp = res - running_mean_nan(res, 31)
         env = np.array([np.nanmax(np.abs(hp[h * 10:(h + 1) * 10])) if np.isfinite(hp[h * 10:(h + 1) * 10]).sum() >= 6 else np.nan
@@ -171,14 +187,16 @@ def main():
         over = np.where(np.abs(hp[e0:]) > 5 * sd_g)[0]
         g_arr = (e0 + over[0]) / 10 if len(over) else None
         gmax_i = int(np.nanargmax(np.abs(hp[e0:]))) + e0
-        P.append(r)
+        P.append(benv)
         G.append(env)
         name = m["name"].split(",")[0]
-        stations_p.append({"id": sid, "name": name, "lat": x["latitude"], "lon": x["longitude"], "series": SL.clean(r, 3)})
+        stations_p.append({"id": sid, "name": name, "lat": la, "lon": lo, "series": SL.clean(benv, 3)})
         stations_g.append({"id": sid, "name": name, "lat": la, "lon": lo, "series": SL.clean(env, 3),
                            "residual_6min": SL.clean(hp, 3)})
         table.append({"station": name, "id": sid, "distance_km": round(dist), "expected_h_after": round(eta - ev["t"], 2),
                       "era5_peak_h_after": round(t_peak - ev["t"], 2), "era5_peak_hpa": round(float(r[kk]), 2),
+                      "baro_jump_hpa": None if b_peak is None else round(b_peak, 2), "baro_peak_h_after": None if b_peak_t is None else round(b_peak_t - ev["t"], 2),
+                      "baro_first_h_after": None if b_first is None else round(b_first - ev["t"], 2), "baro_noise_sd_hpa": None if sd_b is None else round(sd_b, 3),
                       "era5_noise_sd_hpa": round(sd_pre, 2), "era5_peak_over_noise": round(float(r[kk]) / sd_pre, 1),
                       "gauge_first_h_after": None if g_arr is None else round(g_arr - ev["t"], 2),
                       "gauge_max_abs_m": round(float(abs(hp[gmax_i])), 3), "gauge_max_h_after": round(gmax_i / 10 - ev["t"], 2),
@@ -190,7 +208,7 @@ def main():
     print("transect", {k: v for k, v in tr.items() if k != "rows"})
 
     with np.errstate(all="ignore"):
-        hero = np.nanmean(P, 0)
+        hero = np.nanmax(P, 0)      # the largest real jump among the stations each hour
         gl = np.nanmean(G, 0)
     # pooled link: per-station pressure anomaly vs the same station's gauge envelope, lags 0..6 h
     curve = []
@@ -202,18 +220,18 @@ def main():
         a, b = np.concatenate(xs), np.concatenate(ys)
         curve.append([k, round(float(np.corrcoef(a, b)[0, 1]), 3), int(len(a))])
     kb, rb, nb = max(curve, key=lambda c: c[1])
-    lk_lane = SL.link(SL.clean(hero), SL.clean(gl), 6, "hour", "lanes: mean ERA5 anomaly vs mean gauge envelope")
+    lk_lane = SL.link(SL.clean(hero), SL.clean(gl), 6, "hour", "lanes: largest barometer jump vs mean gauge envelope")
     lk = {"r": rb, "lag": kb, "n": nb, "lag_unit": "hour", "sign": "positive" if rb > 0 else "negative",
           "strength": "strong" if abs(rb) >= .6 else "moderate" if abs(rb) >= .3 else "weak",
-          "method": "pooled Pearson r over 15 stations: ERA5 high-passed pressure anomaly at each gauge vs that gauge's hourly max |water residual|, gauge lagged 0..6 h",
+          "method": "pooled Pearson r over the gauges with a barometer: hourly max |air pressure jump| vs the same gauge's hourly max |water residual|, water lagged 0..6 h",
           "curve": [[c[0], c[1]] for c in curve], "lanes": {k: lk_lane.get(k) for k in ("r", "lag", "n", "strength", "method")}}
 
     # arrival link across stations: ERA5 air-wave peak time vs first clear water response at the same gauge
-    ta = np.array([[t["era5_peak_h_after"], t["gauge_first_h_after"]] for t in table if t["gauge_first_h_after"] is not None])
+    ta = np.array([[t["baro_first_h_after"], t["gauge_first_h_after"]] for t in table if t["gauge_first_h_after"] is not None and t["baro_first_h_after"] is not None])
     r_arr = float(np.corrcoef(ta[:, 0], ta[:, 1])[0, 1])
     delay = float(np.median(ta[:, 1] - ta[:, 0]))
     lk["arrivals"] = {"r": round(r_arr, 3), "n": int(len(ta)), "median_water_after_air_h": round(delay, 2),
-                      "method": "Pearson r across gauges: ERA5 pressure peak time vs time the gauge residual first exceeds 5 x its pre-eruption sd"}
+                      "method": "Pearson r across gauges: time the barometer jump first exceeds 5 x its pre-eruption sd vs time the water residual first does"}
     print("arrival link", lk["arrivals"])
 
     # numbers
@@ -231,19 +249,24 @@ def main():
         "ERA5 transect mean arrival error vs 315 m/s (h)": tr["mean_abs_arrival_error_h"],
         "gauge points with ERA5 peak of 0.5 hPa or more near the expected time": f"{len(over)} of {len(table)}",
         "ERA5 peak timing vs expected, median (h)": round(float(np.median(pk)), 2),
-        "Honolulu ERA5 peak (hPa)": hon["era5_peak_hpa"],
+        "Honolulu barometer jump (hPa, measured)": hon["baro_jump_hpa"],
+        "Honolulu barometer jump time (h after eruption)": hon["baro_peak_h_after"],
+        "Honolulu ERA5 peak (hPa, model)": hon["era5_peak_hpa"],
         "Honolulu expected arrival (h after eruption)": hon["expected_h_after"],
-        "San Francisco ERA5 peak (hPa)": sfo["era5_peak_hpa"],
+        "San Francisco barometer jump (hPa, measured)": sfo["baro_jump_hpa"],
+        "gauges with a barometer": sum(1 for t in table if t["baro_jump_hpa"] is not None),
+        "barometer jump near the expected time, median (hPa)": round(float(np.median([t["baro_jump_hpa"] for t in table if t["baro_jump_hpa"] is not None])), 2),
         "largest water oscillation": f"{big['station']} {big['gauge_max_abs_m']} m at {big['gauge_max_h_after']} h after the eruption",
         "pooled link r (pressure to water)": rb,
         "pooled link lag (h)": kb,
         "arrival link r (air peak time vs first water response, across gauges)": round(r_arr, 2),
-        "median water response after the ERA5 air peak (h)": round(delay, 2),
+        "median water response after the air jump (h)": round(delay, 2),
         "stations": len(table),
     }
     gaps = [
-        "ERA5 is a reanalysis model, hourly at about 31 km. Barometers measured a jump of roughly 2 hPa thousands of km away; ERA5 shows a smoothed bump of about 0.3 to 0.8 hPa, so the pressure lane underestimates the real wave.",
-        "The pressure lane is high-passed (fit of 24, 12 and 8 hour cycles plus a slow trend removed, then a 7 hour running mean removed): weather fronts also leave wiggles of a few tenths of hPa.",
+        "Air push = real barometers at the tide gauges (NOAA CO-OPS, every 6 minutes): the jump is the pressure minus its own 3 hour running mean, shown as the hourly largest |jump|; gauges without a barometer show no pillar.",
+        "The air push lane shows the largest jump among the stations each hour, so each passing of the wave over any station is a spike; between passings it shows ordinary weather wiggles.",
+        "ERA5 (a model, hourly at about 31 km) smooths the same wave to a few tenths of hPa; it is kept in the data only as a check.",
         "The ring is a reference front drawn at 315 m/s from the USGS origin, not data.",
         "Gauge series = hourly maximum of |water level minus tide prediction minus a 3 hour running mean|, from 6 minute data: it keeps the amplitude of the oscillation, not its sign.",
         "Ocean tsunami waves travel slower than the air wave; at far gauges the water responds first to the air wave (meteotsunami), then to the ocean tsunami hours later.",
@@ -262,12 +285,12 @@ def main():
         if t["id"] in ("1612340", "9414290", "8724580", "1770000"):
             events.append({"t": round(e_step + t["expected_h_after"], 2), "label": f"expected front at {t['station']}"})
     beats = [
-        {"t": 0, "text": "14 January 2022. Fifteen tide gauges across the Pacific and the US coasts, the air pressure above them from ERA5."},
+        {"t": 0, "text": "14 January 2022. Fifteen tide gauges across the Pacific and the US coasts, most with a barometer measuring the air pressure every 6 minutes."},
         {"t": round(e_step, 2), "text": f"15 January, 04:14 UTC: Hunga Tonga erupts. A pressure wave leaves at about {SPEED:.0f} metres per second."},
-        {"t": round(e_step + hon["expected_h_after"], 2), "text": f"About {hon['expected_h_after']:.1f} hours later the front reaches Honolulu, {hon['distance_km']} km away. ERA5 shows a bump of {hon['era5_peak_hpa']:.2f} hectopascals."},
-        {"t": round(e_step + sfo["expected_h_after"], 2), "text": f"San Francisco, {sfo['expected_h_after']:.1f} hours after the eruption: {sfo['era5_peak_hpa']:.2f} hectopascals in ERA5. Across the Pacific the model wave travels at {tr['speed_ms_theil_sen']:.0f} metres per second."},
+        {"t": round(e_step + hon["expected_h_after"], 2), "text": f"About {hon['expected_h_after']:.1f} hours later the front reaches Honolulu, {hon['distance_km']} km away. the barometer there jumps {hon['baro_jump_hpa']:.2f} hectopascals."},
+        {"t": round(e_step + sfo["expected_h_after"], 2), "text": f"San Francisco, {sfo['expected_h_after']:.1f} hours after the eruption: the barometer jumps {sfo['baro_jump_hpa']} hectopascals."},
         {"t": round(e_step + big["gauge_max_h_after"], 2), "text": f"The largest water swing: {big['station']}, {big['gauge_max_abs_m']:.2f} metres, {big['gauge_max_h_after']:.1f} hours after the eruption."},
-        {"t": round(e_step + 30, 2), "text": f"The wave keeps circling the planet. Hour by hour the pressure to water link is {lk['strength']} (r {rb:.2f}), but the arrival times line up: r {r_arr:.2f} across the gauges, water moving a median {delay:.1f} hours after the air wave."},
+        {"t": round(e_step + 30, 2), "text": f"The wave keeps circling the planet. Hour by hour the pressure to water link is {lk['strength']} (r {rb:.2f}), but the arrival times line up: r {r_arr:.2f} across the gauges, water moving a median {delay:.1f} hours after the air jump."},
     ]
     beats.sort(key=lambda b: b["t"])
 
@@ -277,9 +300,9 @@ def main():
          "series": SL.clean([max(0.0, (h - e_step) * SPEED * 3.6) if h >= e_step else None for h in range(N)], 0),
          "ring": {"lat": lat, "lon": lon, "t": round(e_step, 3), "speed_kmh": round(SPEED * 3.6, 1), "label": "expected front (315 m/s)"}},
         {"id": "pressure", "type": "pillars", "name": "Pressure jump", "color": "#ff8a65", "unit": "hPa",
-         "what": "ERA5 hourly surface pressure at 15 gauges, high-passed anomaly (model, via Open-Meteo); lane = mean of the 15",
+         "what": "NOAA CO-OPS barometers at the tide gauges, 6 minute air pressure minus its 3 hour mean, hourly largest jump (observed); lane = largest jump among the stations",
          "series": SL.clean(hero, 3), "stations": stations_p,
-         "pillar_note": "anomaly can be negative; pillar height linear in the anomaly, 0 at ground"},
+         "pillar_note": "pillar height linear in the hourly largest |jump|, 0 at ground"},
         {"id": "gauges", "type": "columns", "name": "Water", "color": "#4fb3ff", "unit": "m",
          "what": "NOAA CO-OPS 6 minute water level minus tide prediction, short period part, hourly max amplitude (observed); lane = mean of the 15",
          "series": SL.clean(gl, 3), "stations": stations_g},
@@ -290,8 +313,8 @@ def main():
         "region": {"lat0": -30, "lat1": 65, "lon0": 140, "lon1": 295},
         "hero": "pressure", "partner": "gauges",
         "link": lk,
-        "hero_norm": SL.norm_stats(P[:, :int(e_step)].ravel(), "2022-01-14 00Z to 2022-01-15 04Z (pre-eruption)",
-                                   "high-passed ERA5 anomaly at the 15 points before the eruption (no other baseline year makes sense for one eruption)"),
+        "hero_norm": SL.norm_stats(hero[:int(e_step)], "2022-01-14 00Z to 2022-01-15 04Z (pre-eruption)",
+                                   "largest barometer jump among the stations, before the eruption (no other baseline year makes sense for one eruption)"),
         "arrivals": table, "check_transect": tr,
         "stats": stats, "gaps": gaps, "beats": beats, "events": events,
         "sources": [
@@ -299,8 +322,11 @@ def main():
              "kind": "observed", "period": "2022-01-15", "baseline": "none",
              "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000gc8r"},
             {"name": "ERA5 hourly surface pressure", "producer": "ECMWF Copernicus C3S, served by Open-Meteo", "resolution": "0.25 deg, hourly",
-             "kind": "model", "period": "2022-01-11 to 2022-01-21 (fit), shown 14 to 18 Jan", "baseline": "pre-eruption hours",
+             "kind": "model", "period": "2022-01-11 to 2022-01-21 (fit); used only as a check", "baseline": "pre-eruption hours",
              "url": "https://open-meteo.com/en/docs/historical-weather-api"},
+            {"name": "CO-OPS air pressure (barometers at the tide gauges)", "producer": "NOAA CO-OPS", "resolution": "6 minute",
+             "kind": "observed", "period": "2022-01-14 to 2022-01-18", "baseline": "3 hour running mean removed",
+             "url": "https://tidesandcurrents.noaa.gov/"},
             {"name": "CO-OPS water level and tide predictions", "producer": "NOAA CO-OPS", "resolution": "6 minute, 15 gauges",
              "kind": "observed", "period": "2022-01-14 to 2022-01-18", "baseline": "tide prediction removed; datum MSL",
              "url": "https://tidesandcurrents.noaa.gov/"},
@@ -314,7 +340,7 @@ def main():
     SL.write_story(ID, obj)
     print("arrival table:")
     for t in table:
-        print(f"  {t['station']:20s} {t['distance_km']:6d} km exp {t['expected_h_after']:5.2f} h  ERA5 {t['era5_peak_h_after']:5.2f} h {t['era5_peak_hpa']:+.2f} hPa (x{t['era5_peak_over_noise']} noise)  gauge first {t['gauge_first_h_after']} h max {t['gauge_max_abs_m']} m at {t['gauge_max_h_after']} h")
+        print(f"  {t['station']:20s} {t['distance_km']:6d} km exp {t['expected_h_after']:5.2f} h  BARO {t['baro_jump_hpa']} hPa at {t['baro_peak_h_after']} h  ERA5 {t['era5_peak_h_after']:5.2f} h {t['era5_peak_hpa']:+.2f} hPa (x{t['era5_peak_over_noise']} noise)  gauge first {t['gauge_first_h_after']} h max {t['gauge_max_abs_m']} m at {t['gauge_max_h_after']} h")
 
 
 if __name__ == "__main__":

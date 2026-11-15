@@ -7,55 +7,55 @@
  "hero": "pressure",
  "partner": "gauges",
  "link": {
-  "r": 0.051,
+  "r": 0.173,
   "lag": 5,
-  "n": 1710,
+  "n": 1582,
   "lag_unit": "hour",
   "sign": "positive",
   "strength": "weak",
-  "method": "pooled Pearson r over 15 stations: ERA5 high-passed pressure anomaly at each gauge vs that gauge's hourly max |water residual|, gauge lagged 0..6 h",
+  "method": "pooled Pearson r over the gauges with a barometer: hourly max |air pressure jump| vs the same gauge's hourly max |water residual|, water lagged 0..6 h",
   "curve": [
    [
     0,
-    0.001
+    0.057
    ],
    [
     1,
-    -0.022
+    0.087
    ],
    [
     2,
-    -0.04
+    0.1
    ],
    [
     3,
-    -0.02
+    0.121
    ],
    [
     4,
-    0.011
+    0.153
    ],
    [
     5,
-    0.051
+    0.173
    ],
    [
     6,
-    0.014
+    0.153
    ]
   ],
   "lanes": {
-   "r": -0.039,
-   "lag": 3,
-   "n": 116,
-   "strength": "weak",
-   "method": "lanes: mean ERA5 anomaly vs mean gauge envelope"
+   "r": 0.521,
+   "lag": 5,
+   "n": 113,
+   "strength": "moderate",
+   "method": "lanes: largest barometer jump vs mean gauge envelope"
   },
   "arrivals": {
-   "r": 0.858,
-   "n": 15,
-   "median_water_after_air_h": 2.47,
-   "method": "Pearson r across gauges: ERA5 pressure peak time vs time the gauge residual first exceeds 5 x its pre-eruption sd"
+   "r": 0.817,
+   "n": 14,
+   "median_water_after_air_h": 2.85,
+   "method": "Pearson r across gauges: time the barometer jump first exceeds 5 x its pre-eruption sd vs time the water residual first does"
   }
  },
  "stats": {
@@ -66,19 +66,24 @@
   "ERA5 transect mean arrival error vs 315 m/s (h)": 0.21,
   "gauge points with ERA5 peak of 0.5 hPa or more near the expected time": "7 of 15",
   "ERA5 peak timing vs expected, median (h)": -0.07,
-  "Honolulu ERA5 peak (hPa)": 0.39,
+  "Honolulu barometer jump (hPa, measured)": 1.56,
+  "Honolulu barometer jump time (h after eruption)": 4.75,
+  "Honolulu ERA5 peak (hPa, model)": 0.39,
   "Honolulu expected arrival (h after eruption)": 4.43,
-  "San Francisco ERA5 peak (hPa)": 0.6,
+  "San Francisco barometer jump (hPa, measured)": 0.99,
+  "gauges with a barometer": 14,
+  "barometer jump near the expected time, median (hPa)": 1.6,
   "largest water oscillation": "Port San Luis 1.284 m at 13.25 h after the eruption",
-  "pooled link r (pressure to water)": 0.051,
+  "pooled link r (pressure to water)": 0.173,
   "pooled link lag (h)": 5,
-  "arrival link r (air peak time vs first water response, across gauges)": 0.86,
-  "median water response after the ERA5 air peak (h)": 2.47,
+  "arrival link r (air peak time vs first water response, across gauges)": 0.82,
+  "median water response after the air jump (h)": 2.85,
   "stations": 15
  },
  "gaps": [
-  "ERA5 is a reanalysis model, hourly at about 31 km. Barometers measured a jump of roughly 2 hPa thousands of km away; ERA5 shows a smoothed bump of about 0.3 to 0.8 hPa, so the pressure lane underestimates the real wave.",
-  "The pressure lane is high-passed (fit of 24, 12 and 8 hour cycles plus a slow trend removed, then a 7 hour running mean removed): weather fronts also leave wiggles of a few tenths of hPa.",
+  "Air push = real barometers at the tide gauges (NOAA CO-OPS, every 6 minutes): the jump is the pressure minus its own 3 hour running mean, shown as the hourly largest |jump|; gauges without a barometer show no pillar.",
+  "The air push lane shows the largest jump among the stations each hour, so each passing of the wave over any station is a spike; between passings it shows ordinary weather wiggles.",
+  "ERA5 (a model, hourly at about 31 km) smooths the same wave to a few tenths of hPa; it is kept in the data only as a check.",
   "The ring is a reference front drawn at 315 m/s from the USGS origin, not data.",
   "Gauge series = hourly maximum of |water level minus tide prediction minus a 3 hour running mean|, from 6 minute data: it keeps the amplitude of the oscillation, not its sign.",
   "Ocean tsunami waves travel slower than the air wave; at far gauges the water responds first to the air wave (meteotsunami), then to the ocean tsunami hours later.",
@@ -87,11 +92,11 @@
   "Key West and San Juan (Atlantic side) show no clear ERA5 pressure peak; their water response comes about a day later."
  ],
  "hero_norm": {
-  "mean": 0.0042,
-  "sd": 0.2545,
-  "n": 420,
+  "mean": 0.4217,
+  "sd": 0.1375,
+  "n": 27,
   "years": "2022-01-14 00Z to 2022-01-15 04Z (pre-eruption)",
-  "method": "high-passed ERA5 anomaly at the 15 points before the eruption (no other baseline year makes sense for one eruption)"
+  "method": "largest barometer jump among the stations, before the eruption (no other baseline year makes sense for one eruption)"
  },
  "sources": [
   {
@@ -108,9 +113,18 @@
    "producer": "ECMWF Copernicus C3S, served by Open-Meteo",
    "resolution": "0.25 deg, hourly",
    "kind": "model",
-   "period": "2022-01-11 to 2022-01-21 (fit), shown 14 to 18 Jan",
+   "period": "2022-01-11 to 2022-01-21 (fit); used only as a check",
    "baseline": "pre-eruption hours",
    "url": "https://open-meteo.com/en/docs/historical-weather-api"
+  },
+  {
+   "name": "CO-OPS air pressure (barometers at the tide gauges)",
+   "producer": "NOAA CO-OPS",
+   "resolution": "6 minute",
+   "kind": "observed",
+   "period": "2022-01-14 to 2022-01-18",
+   "baseline": "3 hour running mean removed",
+   "url": "https://tidesandcurrents.noaa.gov/"
   },
   {
    "name": "CO-OPS water level and tide predictions",

@@ -12,6 +12,12 @@ Outputs (repo, small):
   series.json          band means per month, Mauna Loa record, correlations + lags
 
 Usage: python c4_breathing.py <raw_dir> <out_dir>
+
+2022 and 2023 (three-year story): data/c4/textures/ndvi_2022_MM.jpg, ndvi_2023_MM.jpg and the series.json keys
+ndvi_3y, mauna_loa_season_3y, mauna_loa_co2_3y, pairs_3y, correlations_3y, breathing_band come from Jose's
+c4-breathing-v2 run of this same processing on MOD13C2 2022 and 2023 (2021 values reproduce exactly, max diff 0).
+correlations_3y: lagged Pearson r over 36 months, not cyclic (n = 36 - lag); "anomaly" = same after removing the
+mean seasonal cycle. Re-running them needs the 2022/2023 HDF files (Earthdata login).
 """
 import glob
 import json

@@ -171,7 +171,22 @@ def firms(story_id, year, country):
         z = np.load(npz, allow_pickle=False)
         return {k: z[k] for k in z.files}
     p = SL.fetch(FIRMS.format(y=year, c=country), story_id, name=name, min_bytes=1000)
-    import pandas as pd
+    try:
+        import pandas as pd
+    except ImportError:  # same arrays with the csv module (no pandas in this Python)
+        pd = None
+    if pd is None:
+        cols = {k: [] for k in ("lat", "lon", "frp", "time", "conf", "daynight", "type")}
+        with open(p, newline="") as fh:
+            for r in csv.DictReader(fh):
+                cols["lat"].append(float(r["latitude"])); cols["lon"].append(float(r["longitude"])); cols["frp"].append(float(r["frp"]))
+                cols["time"].append(f"{r['acq_date']}T{r['acq_time'].zfill(4)[:2]}:{r['acq_time'].zfill(4)[2:]}")
+                cols["conf"].append(str(r["confidence"])[:1]); cols["daynight"].append(str(r["daynight"])[:1]); cols["type"].append(int(r["type"]))
+        d = {"lat": np.array(cols["lat"], np.float32), "lon": np.array(cols["lon"], np.float32), "frp": np.array(cols["frp"], np.float32),
+             "time": np.array(cols["time"], "datetime64[m]"), "conf": np.array(cols["conf"], "U1"),
+             "daynight": np.array(cols["daynight"], "U1"), "type": np.array(cols["type"], np.int8)}
+        np.savez(npz, **d)
+        return d
     df = pd.read_csv(p, usecols=["latitude", "longitude", "acq_date", "acq_time", "frp", "confidence", "daynight", "type"],
                      dtype={"acq_time": str})
     t = pd.to_datetime(df.acq_date + " " + df.acq_time.str.zfill(4), format="%Y-%m-%d %H%M").values.astype("datetime64[m]")
@@ -180,6 +195,29 @@ def firms(story_id, year, country):
          "daynight": df.daynight.astype(str).values.astype("U1"), "type": df["type"].values.astype(np.int8)}
     np.savez(npz, **d)
     return d
+
+
+def merge_points(lat, lon, t, frp, nmax=30000, t_bin=1.0, cell0=0.02):
+    """Every detection kept: detections are merged into (cell, time-bin) groups, the cell growing until there are at most
+    nmax groups. Each group = one flame at the location of its strongest detection, at the time of its first detection,
+    with value = summed FRP and n = number of detections. Returns dict(lat, lon, t, v, n), sorted by time, and the cell size."""
+    lat, lon, t, frp = (np.asarray(x, float) for x in (lat, lon, t, frp))
+    w = np.maximum(frp, 1e-3)
+    cell = cell0
+    while True:
+        key = np.stack([np.floor(lat / cell), np.floor(lon / cell), np.floor(t / t_bin)], 1).astype(np.int64)
+        uk, inv = np.unique(key, axis=0, return_inverse=True)
+        inv = inv.ravel()
+        if len(uk) <= nmax:
+            break
+        cell *= 1.25
+    g = len(uk)
+    # each flame sits on the real location of its group's strongest detection (no lattice of cell centres)
+    order = np.lexsort((-w, inv)); first = order[np.r_[0, np.flatnonzero(np.diff(inv[order])) + 1]]
+    out = {"lat": lat[first], "lon": lon[first], "v": np.bincount(inv, frp, g), "n": np.bincount(inv, None, g).astype(int)}
+    tmin = np.full(g, np.inf); np.minimum.at(tmin, inv, t); out["t"] = tmin
+    o = np.argsort(out["t"])
+    return {k: v[o] for k, v in out.items()}, cell
 
 
 def even_subsample(order_key, nmax):

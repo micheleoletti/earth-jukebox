@@ -21,12 +21,16 @@ def story_js(sid, obj):
     print(out.relative_to(repo), round(out.stat().st_size / 1e6, 2), "MB")
 
 
-# ---- C4 The Planet Breathing (MODIS NDVI 2021 + Mauna Loa CO2)
+# ---- C4 The Planet Breathing (MODIS NDVI 2021 to 2023 + Mauna Loa CO2)
+# three years when the 2022/2023 maps and the 36-month tree file are present; otherwise the 2021-only cycle
+T3 = data / "trees_0p5deg_2021_2023.bin"
+YEARS = (2021, 2022, 2023) if T3.exists() and all((data / "textures" / f"ndvi_{y}_{m:02d}.jpg").exists() for y in (2022, 2023) for m in range(1, 13)) else (2021,)
 story_js("breathing", {
-    "timebase": "day", "step_s": 86400, "t0": "2021-01-01T00:00Z", "n": 365,
-    "tex": ["data:image/jpeg;base64," + b64(data / "textures" / f"ndvi_2021_{m:02d}.jpg") for m in range(1, 13)],
-    "trees": b64(data / "trees_0p5deg_2021.bin"),
-    "series": json.loads((data / "series.json").read_text()),   # full Mauna Loa record kept
+    "timebase": "day", "step_s": 86400, "t0": "2021-01-01T00:00Z", "n": 365 * len(YEARS),   # 2021 to 2023: 1095 days (no leap day)
+    "tex": ["data:image/jpeg;base64," + b64(data / "textures" / f"ndvi_{y}_{m:02d}.jpg") for y in YEARS for m in range(1, 13)],
+    **({"tex_m0": "2021-01", "tree_m0": "2021-01", "tree_months": 36} if len(YEARS) == 3 else {}),
+    "trees": b64(T3 if len(YEARS) == 3 else data / "trees_0p5deg_2021.bin"),
+    "series": json.loads((data / "series.json").read_text()),   # full Mauna Loa record kept; ndvi_3y + correlations_3y for the 3 years
 })
 # ---- E9 Wuhan lockdown (OMI NO2, 2015-19 baseline aligned on Lunar New Year)
 wd = repo / "data" / "wuhan"

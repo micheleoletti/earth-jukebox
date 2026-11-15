@@ -434,6 +434,8 @@ def main():
              "stations": [{"id": c.lower(), "name": f"{c} ({ncity[c]} station{'s' if ncity[c] > 1 else ''})",
                            "lat": round(float(np.mean([s["lat"] for s in sts])), 4), "lon": round(float(np.mean([s["lon"] for s in sts])), 4),
                            "series": [None if x is None else round(x, 1) for x in per_city[c][2020]],
+                           # normal for the same calendar days: mean of 2015-2019 (drawn as a faint ghost pillar)
+                           "normal": [None if x is None else round(x, 1) for x in normal_band({y: per_city[c][y] for y in YEARS_BASE})[0]],
                            "members": [{"code": s["code"], "name": s["name"], "type": s["type"], "lat": s["lat"], "lon": s["lon"]} for s in sts]}
                           for c, sts in cities.items()]},
             {"id": "no2", "type": "no2fog", "name": "NO2 from space", "unit": "1e15 molecules/cm2", "color": "#c98bff",

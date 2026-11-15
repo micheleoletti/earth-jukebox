@@ -120,18 +120,17 @@ def main():
     frp = [float(f["frp"][sel & (day == d)].sum()) for d in range(N)]
     cnt = [int((sel & (day == d)).sum()) for d in range(N)]
     idx = np.where(sel)[0]
-    sub = idx[FH.even_subsample(tt[idx], 30000)]
-    sub = sub[np.argsort(tt[sub])]
-    vmax_frp = float(np.percentile(f["frp"][idx], 99))
-    gaps.append(f"Fire points: {len(idx):,} VIIRS detections in south-east Australia (39-28S, 140-154E) in the window; "
-                f"{len(sub):,} drawn, subsampled evenly in time. Daily FRP totals use all of them.")
-    gaps.append(f"Fire point size is linear in FRP up to {vmax_frp:.0f} MW (99th percentile); larger detections drawn at that size. "
+    P, cell = FH.merge_points(f["lat"][idx], f["lon"][idx], tt[idx], f["frp"][idx], 30000, t_bin=1.0)
+    vmax_frp = float(np.percentile(P["v"], 99))
+    gaps.append(f"Fire points: all {len(idx):,} VIIRS detections in south-east Australia (39-28S, 140-154E) in the window, merged into "
+                f"{len(P['v']):,} flames (detections within {cell * 111:.0f} km on the same day become one flame at the place of their strongest detection, size = their summed FRP).")
+    gaps.append(f"Flame size is linear in summed FRP up to {vmax_frp:.0f} MW (99th percentile); larger flames drawn at that size. "
                 "Only nominal and high confidence vegetation fire detections; VIIRS passes about twice a day and thick smoke can hide fires.")
     fires = {"id": "fires", "type": "points", "name": "Fires (SE Australia)",
              "what": "VIIRS SNPP active fire detections, NASA FIRMS (observed); lane = daily total fire radiative power",
              "color": "#ff7a1a", "unit": "MW (daily total FRP)", "series": SL.clean(frp, 1),
-             "points": {"lat": SL.clean(f["lat"][sub], 3), "lon": SL.clean(f["lon"][sub], 3),
-                        "t": SL.clean(tt[sub], 3), "v": SL.clean(f["frp"][sub], 1)},
+             "points": {"lat": SL.clean(P["lat"], 3), "lon": SL.clean(P["lon"], 3),
+                        "t": SL.clean(P["t"], 3), "v": SL.clean(P["v"], 1), "n": [int(x) for x in P["n"]]},
              "vmax": round(vmax_frp, 1)}
 
     # ------------------------------------------------------------ Sydney (NSW) + Canberra (ACT) PM2.5

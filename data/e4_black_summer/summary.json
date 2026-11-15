@@ -90,8 +90,8 @@
   "link lag, Canberra after fires (days)": 2
  },
  "gaps": [
-  "Fire points: 507,028 VIIRS detections in south-east Australia (39-28S, 140-154E) in the window; 30,000 drawn, subsampled evenly in time. Daily FRP totals use all of them.",
-  "Fire point size is linear in FRP up to 129 MW (99th percentile); larger detections drawn at that size. Only nominal and high confidence vegetation fire detections; VIIRS passes about twice a day and thick smoke can hide fires.",
+  "Fire points: all 507,028 VIIRS detections in south-east Australia (39-28S, 140-154E) in the window, merged into 29,059 flames (detections within 5 km on the same day become one flame at the place of their strongest detection, size = their summed FRP).",
+  "Flame size is linear in summed FRP up to 2586 MW (99th percentile); larger flames drawn at that size. Only nominal and high confidence vegetation fire detections; VIIRS passes about twice a day and thick smoke can hide fires.",
   "Sydney PM2.5 = mean of the 15 Sydney monitors of the NSW network reporting PM2.5 each day (median 14 per day); daily values are 24 h means of local calendar days (AEST), aligned on the UTC story day.",
   "Normal = Sydney monitors over the same window in the 2015-16, 2016-17, 2017-18, 2018-19 summers (4 seasons); the set of monitors grew over those years.",
   "Canberra = ACT Health monitors (Civic, Florey, Monash), daily means of hourly PM2.5 (pm2_5_1_hr) on local days, only days with at least 18 hours; drawn as pillars but not part of the Sydney hero lane.",

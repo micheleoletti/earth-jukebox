@@ -4,6 +4,9 @@ Output binary (little endian), per cell: int16 lat*100, int16 lon*100, 12 x uint
 Cells kept: max monthly NDVI >= THRESH.
 
 Usage: python c4_trees.py <raw_dir> <out_file>
+
+Three-year variant: data/c4/trees_0p5deg_2021_2023.bin has the same cells, 36 x uint8 per cell (Jan 2021 to Dec 2023),
+from Jose's c4-breathing-v2 run (its 2021 months equal trees_0p5deg_2021.bin byte for byte).
 """
 import glob
 import os

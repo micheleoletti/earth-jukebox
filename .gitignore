@@ -15,3 +15,5 @@ music-engine/prototype/bounces/*.wav
 
 # raw third-party samples (Pixabay licence: no standalone redistribution)
 music-engine/prototype/samples/
+
+__pycache__/
