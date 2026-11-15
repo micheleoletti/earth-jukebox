@@ -884,22 +884,23 @@ const smogMat = (speed, strength, scale) => new THREE.ShaderMaterial({
 const cyc = (arr, m) => { const i = Math.floor(m) % 12, f = m - Math.floor(m); const s = f * f * (3 - 2 * f); return arr[i] + (arr[(i + 1) % 12] - arr[i]) * s; };
 const monthFloat = d => ((d.getUTCMonth() + (d.getUTCDate() - 15) / 30.44) % 12 + 12) % 12;
 const absMonth = d => d.getUTCFullYear() * 12 + d.getUTCMonth() + (d.getUTCDate() - 15) / 30.44;
-let NDVI_TEX = null, lastTexI = -1;
+let NDVI_TEX = null, lastTexI = -1, TEX_M0 = null;   // TEX_M0: absolute month of the first map when the maps span several years
 
 function buildBreathing(D, ctx){
   const S = D.series;
   NDVI_TEX = D.tex.map(src => { const t = loader.load(src); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; }); lastTexI = -1;
+  TEX_M0 = D.tex_m0 ? +D.tex_m0.slice(0, 4) * 12 + (+D.tex_m0.slice(5, 7) - 1) : null;   // maps follow the real months
   // CO2 smog shells
   const low = new THREE.Mesh(new THREE.SphereGeometry(R * 1.012, 128, 96), smogMat(.018, 1.25, 3.2));
   const high = new THREE.Mesh(new THREE.SphereGeometry(R * 1.035, 96, 72), smogMat(.011, .55, 2.1));
   low.renderOrder = 3; high.renderOrder = 4; ctx.group.add(low, high);
   // trees: instanced low-poly, 2 per 0.5 deg cell; height = how much forest (greenest month); canopy = this month's greenness
-  const bin = b64u8(D.trees), dv = new DataView(bin.buffer), REC = 16, nCells = bin.length / REC, PER = MOBILE ? 1 : 2;
+  const NM = D.tree_months || 12, bin = b64u8(D.trees), dv = new DataView(bin.buffer), REC = 4 + NM, nCells = bin.length / REC, PER = MOBILE ? 1 : 2;
   const pools = {con:[], broad:[]};
   for (let c = 0; c < nCells; c++){
     const o = c * REC, lat = dv.getInt16(o, true) / 100, lon = dv.getInt16(o + 2, true) / 100;
     const nd = []; let mx = 0;
-    for (let m = 0; m < 12; m++){ nd.push(bin[o + 4 + m] / 255); mx = Math.max(mx, nd[m]); }
+    for (let m = 0; m < NM; m++){ nd.push(bin[o + 4 + m] / 255); mx = Math.max(mx, nd[m]); }
     for (let j = 0; j < PER; j++){
       const la = lat + (Math.random() - .5) * .48, lo = lon + (Math.random() - .5) * .48;
       const conifer = Math.abs(la) > 52 || (Math.abs(la) > 40 && Math.random() < .45) || mx < .4;
@@ -911,20 +912,22 @@ function buildBreathing(D, ctx){
   const CONIFER = canopy(new THREE.ConeGeometry(.5, 1, 5, 1, true).translate(0, .5, 0));
   const BROAD = canopy(new THREE.OctahedronGeometry(.55, 0).scale(1, .82, 1).translate(0, .48, 0));
   const treeMesh = (geo, list, canopyY, conifer) => {
-    const N = list.length, aDir = new Float32Array(N * 3), aN0 = new Float32Array(N * 4), aN1 = new Float32Array(N * 4), aN2 = new Float32Array(N * 4), aRnd = new Float32Array(N * 4);
-    list.forEach((t, k) => { aDir.set(t.d, k * 3); aN0.set(t.nd.slice(0, 4), k * 4); aN1.set(t.nd.slice(4, 8), k * 4); aN2.set(t.nd.slice(8, 12), k * 4);
-      aRnd.set([Math.random(), Math.random(), Math.random(), t.mx], k * 4); });
+    const N = list.length, aDir = new Float32Array(N * 3), aN = [0, 1, 2, 3].map(() => new Float32Array(N * 4)), aRnd = new Float32Array(N * 4);
+    // window of 16 months for year y: slot 0 = Dec of y-1, slots 1..12 = Jan..Dec of y, 13..15 = Jan..Mar of y+1 (clamped at the ends of the record)
+    const fill = y => { list.forEach((t, k) => { for (let j = 0; j < 16; j++){ const mi = NM === 12 ? ((j - 1) % 12 + 12) % 12 : Math.max(0, Math.min(NM - 1, y * 12 + j - 1)); aN[j >> 2][k * 4 + (j & 3)] = t.nd[mi]; } }); };
+    fill(0);
+    list.forEach((t, k) => { aDir.set(t.d, k * 3); aRnd.set([Math.random(), Math.random(), Math.random(), t.mx], k * 4); });
     const ig = new THREE.InstancedBufferGeometry();
     ig.index = geo.index; ig.attributes.position = geo.attributes.position; ig.attributes.normal = geo.attributes.normal; ig.attributes.aPart = geo.attributes.aPart;
-    ig.setAttribute('aDir', new THREE.InstancedBufferAttribute(aDir, 3)); ig.setAttribute('aN0', new THREE.InstancedBufferAttribute(aN0, 4));
-    ig.setAttribute('aN1', new THREE.InstancedBufferAttribute(aN1, 4)); ig.setAttribute('aN2', new THREE.InstancedBufferAttribute(aN2, 4));
+    ig.setAttribute('aDir', new THREE.InstancedBufferAttribute(aDir, 3));
+    aN.forEach((a, q) => ig.setAttribute('aN' + q, new THREE.InstancedBufferAttribute(a, 4)));
     ig.setAttribute('aRnd', new THREE.InstancedBufferAttribute(aRnd, 4)); ig.instanceCount = N;
     const mat = new THREE.ShaderMaterial({
       uniforms:U, side:THREE.DoubleSide, defines:{CANOPY_Y:canopyY.toFixed(3), CONIFER:conifer ? 1 : 0},
-      vertexShader:`attribute vec3 aDir; attribute vec4 aN0, aN1, aN2, aRnd; attribute float aPart;
+      vertexShader:`attribute vec3 aDir; attribute vec4 aN0, aN1, aN2, aN3, aRnd; attribute float aPart;
         uniform float uMonth, uTime, uTreeT;
         varying float vLeaf; varying float vPart; varying vec3 vNW; varying vec3 vPW; varying float vJit; varying float vRise; varying float vFall; varying float vLarch;
-        float nd(int i){ return i < 4 ? aN0[i] : i < 8 ? aN1[i - 4] : aN2[i - 8]; }
+        float nd(int i){ return i < 4 ? aN0[i] : i < 8 ? aN1[i - 4] : i < 12 ? aN2[i - 8] : aN3[i - 12]; }
         float backOut(float k){ float c1 = 1.9, c3 = c1 + 1.; return 1. + c3 * pow(k - 1., 3.) + c1 * pow(k - 1., 2.); }
         void main(){
           vec3 wd = normalize(mat3(modelMatrix) * aDir);
@@ -932,11 +935,11 @@ function buildBreathing(D, ctx){
           float hz = dot(wd, cameraPosition / camD) - ${R.toFixed(1)} / camD;
           if (hz < -.04){ gl_Position = vec4(2., 2., 2., 1.); return; }
           float horizon = smoothstep(-.04, .16, hz);
-          float m = mod(uMonth, 12.); int i0 = int(floor(m)); int i1 = int(mod(float(i0 + 1), 12.));
+          float m = clamp(uMonth, -1., 13.) + 1.; int i0 = int(floor(m)); int i1 = min(i0 + 1, 15);
           float v = mix(nd(i0), nd(i1), smoothstep(0., 1., fract(m)));
           float mx = aRnd.w;
           float leaf = clamp((v - .1) / max(mx - .1, .05), 0., 1.);
-          int ip = int(mod(float(i0 + 11), 12.));
+          int ip = max(i0 - 1, 0);
           float slope = mix(nd(i0) - nd(ip), nd(i1) - nd(i0), fract(m)) / max(mx - .1, .05);
           vRise = clamp(slope * 7., 0., 1.); vFall = clamp(-slope * 9., 0., 1.);
           vLarch = step(.72, aRnd.y) * smoothstep(.75, .85, abs(aDir.y));
@@ -983,23 +986,36 @@ function buildBreathing(D, ctx){
           gl_FragColor = vec4(c * (.25 + .85 * lam) + vec3(.5, .9, .5) * rim * .12 * vLeaf, 1.);
           #include <colorspace_fragment>
         }`});
-    const mesh = new THREE.Mesh(ig, mat); mesh.frustumCulled = false; return mesh;
+    const mesh = new THREE.Mesh(ig, mat); mesh.frustumCulled = false;
+    mesh.userData.setYear = y => { fill(y); for (let q = 0; q < 4; q++) ig.attributes['aN' + q].needsUpdate = true; };
+    return mesh;
   };
   const trees = [treeMesh(CONIFER, pools.con, .45, true), treeMesh(BROAD, pools.broad, .48, false)];
+  let treeYear = 0; const TM0 = D.tree_m0 ? +D.tree_m0.slice(0, 4) * 12 + (+D.tree_m0.slice(5, 7) - 1) : 0;
   ctx.group.add(...trees);
   // series
-  const G = S.ndvi.boreal_50_70N;
+  // readout band: the latitude band whose greenness best tracks the Mauna Loa CO2 swing (chosen in the data step)
+  const BAND = S.breathing_band || 'boreal_50_70N', BANDLBL = {boreal_50_70N:'boreal mean, 50 to 70° N', temperate_30_50N:'temperate mean, 30 to 50° N',
+    subtropics_10_30N:'subtropical mean, 10 to 30° N', tropics_10S_10N:'tropical mean, 10° S to 10° N', south_10_40S:'southern mean, 10 to 40° S'}[BAND];
+  const N3 = S.ndvi_3y, G = N3 ? N3.ndvi[BAND] : S.ndvi[BAND], M0 = N3 ? +N3.months[0].slice(0, 4) * 12 + (+N3.months[0].slice(5, 7) - 1) : null;
+  const ndviAt = am => { if (!N3) return null; const x = Math.max(0, Math.min(G.length - 1, am - M0)), i = Math.floor(x), j = Math.min(G.length - 1, i + 1); return G[i] + (G[j] - G[i]) * (x - i); };
   const MLO = {};
   S.mauna_loa.forEach(r => { MLO[+r.t.slice(0, 4) * 12 + (+r.t.slice(5, 7) - 1)] = {co2:r.co2, sw:r.co2 - r.deseason}; });
   const mloAt = (am, key) => { const a = MLO[Math.floor(am)], b = MLO[Math.floor(am) + 1] || a; if (!a) return null; return a[key] + (b[key] - a[key]) * (am - Math.floor(am)); };
-  const SW21 = S.mauna_loa_season_year, sMin = Math.min(...SW21), sMax = Math.max(...SW21);
-  const corr = S.correlations['ndvi_boreal_50_70N__vs__mauna_loa'];
+  const SWR = S.mauna_loa_season_3y || S.mauna_loa_season_year, sMin = Math.min(...SWR), sMax = Math.max(...SWR);
+  const C3 = S.correlations_3y && S.correlations_3y[BAND];
+  const corr = C3 ? C3.raw : S.correlations['ndvi_' + BAND + '__vs__mauna_loa'];
   const d0 = ctx.t0;
   const dAt = p => new Date(d0 + p * DAY);
+  const YRS = N3 ? `${N3.months[0].slice(0, 4)} to ${N3.months[N3.months.length - 1].slice(0, 4)}` : '2021';
   const layers = [
-    baseLayer({id:'trees', type:'trees', name:'Forests', what:'NASA MODIS greenness (NDVI), 50 to 70 N', color:'#7ee08a', unit:'NDVI', kind:'observed'},
-      {objs:trees, secs:1.5, value:p => cyc(G, monthFloat(dAt(p))), fmt:v => v.toFixed(2), note:'2021 data, matched by calendar month',
-        setVis(v){ U.uTreeT.value = v * 1.5; }, apply(p){ U.uMonth.value = monthFloat(dAt(p)); }}),
+    baseLayer({id:'trees', type:'trees', name:'Forests', what:`NASA MODIS greenness (NDVI), ${YRS}; readout = ${BANDLBL}. Trees: every 0.5° land cell, month by month`, color:'#7ee08a', unit:'NDVI', kind:'observed'},
+      {objs:trees, secs:1.5, value:p => N3 ? ndviAt(absMonth(dAt(p))) : cyc(G, monthFloat(dAt(p))), fmt:v => v.toFixed(2), note:N3 ? `monthly ${BANDLBL}, ${YRS}; trees and ground maps month by month` : '2021 data, matched by calendar month',
+        setVis(v){ U.uTreeT.value = v * 1.5; },
+        apply(p){ const d = dAt(p); if (NM === 12){ U.uMonth.value = monthFloat(d); return; }
+          const am = absMonth(d) - TM0, y = Math.max(0, Math.min(NM / 12 - 1, Math.floor((am + .5) / 12)));
+          if (y !== treeYear){ treeYear = y; trees.forEach(t => t.userData.setYear(y)); }
+          U.uMonth.value = am - 12 * y; }}),
     baseLayer({id:'co2', type:'smog', name:'CO₂ swing', what:'NOAA Mauna Loa CO₂, seasonal swing', color:'#ffb45c', unit:'ppm', kind:'observed'},
       {objs:[low, high], secs:1.4, value:p => mloAt(absMonth(dAt(p)), 'sw'), fmt:v => (v >= 0 ? '+' : '') + v.toFixed(1),
         extra:p => { const c = mloAt(absMonth(dAt(p)), 'co2'); return c == null ? '' : c.toFixed(1) + ' ppm total'; },
@@ -1007,13 +1023,19 @@ function buildBreathing(D, ctx){
         apply(p){ U.uCO2.value = .1 + (clamp01((this.value(p) - sMin) / (sMax - sMin)) - .1) * U.uSmogShow.value; }, off(){ U.uCO2.value = .1; }}),
   ];
   const lagM = corr.best_lag;
-  return {layers, hero:'trees', partner:'co2', heroNorm:{min:Math.min(...G), max:Math.max(...G), method:'cycle: position in the 2021 boreal greenness range'},
-    link:{r:corr.best_r, lag:lagM, lag_unit:'month', lag_steps:Math.round(lagM * 30.44), n:12, sign:'negative', strength:Math.abs(corr.best_r) >= .6 ? 'strong' : 'moderate',
-      method:'Pearson r between monthly boreal NDVI (50 to 70 N) and the Mauna Loa CO₂ seasonal swing (CO₂ minus NOAA deseasonalized), 2021, lags 0 to 4 months'},
-    stats:{'best lag (months)':lagM, 'r at that lag':corr.best_r},
-    beats:[{t:0, text:'Winter: CO2 builds up in the air while northern forests sleep.'}, {t:75, text:'Spring: green-up spreads north.'},
-      {t:152, text:`Summer: northern forests inhale CO2; the air's CO2 bottoms out about ${lagM} months after greenness peaks.`},
-      {t:244, text:'Autumn: leaves fall and the north exhales.'}, {t:335, text:'Winter again: CO2 climbs back.'}],
+  const nYears = N3 ? N3.months.length / 12 : 1, yr0 = N3 ? +N3.months[0].slice(0, 4) : 2021;
+  const beats = [];
+  for (let y = 0; y < nYears; y++){ const o = Math.round(y * 365.25), Y = yr0 + y;
+    beats.push({t:o, text:y === 0 ? `${Y}. Winter: CO2 builds up in the air while northern forests sleep.` : `${Y}. Winter again: CO2 climbs back, as it did the year before.`},
+      {t:o + 75, text:`Spring ${Y}: green-up spreads north.`},
+      {t:o + 152, text:`Summer ${Y}: northern forests inhale CO2; the air's CO2 bottoms out about ${lagM} months after greenness peaks.`},
+      {t:o + 244, text:`Autumn ${Y}: leaves fall and the north exhales.`}); }
+  const anomTxt = C3 ? `; with the average seasonal cycle removed, r = ${C3.anomaly.best_r.toFixed(2)} (lag ${C3.anomaly.best_lag} months)` : '';
+  return {layers, hero:'trees', partner:'co2', heroNorm:{min:Math.min(...G), max:Math.max(...G), method:`position in the ${YRS} ${BANDLBL} greenness range`},
+    link:{r:corr.best_r, lag:lagM, lag_unit:'month', lag_steps:Math.round(lagM * 30.44), n:corr.n || 12, sign:corr.best_r < 0 ? 'negative' : 'positive', strength:Math.abs(corr.best_r) >= .6 ? 'strong' : 'moderate',
+      method:`Pearson r between monthly NDVI (${BANDLBL}) and the Mauna Loa CO₂ seasonal swing (CO₂ minus NOAA deseasonalized), ${YRS}, lags 0 to 4 months${anomTxt}`},
+    stats:{'best lag (months)':lagM, 'r at that lag':corr.best_r, ...(C3 ? {'r without the seasonal cycle':C3.anomaly.best_r} : {})},
+    beats,
     disposeExtra(){ NDVI_TEX.forEach(t => t.dispose()); NDVI_TEX = null; gU.uA.value = gU.uB.value = BLANK; }};
 }
 
@@ -1192,7 +1214,7 @@ const STORIES = [
   {id:'c5_snow', no:'C5', key:'0', kind:'cycle', color:'#e8f4ff', title:'Snow Follows the Cold', card:'The northern snow cover grows and melts with temperature.', place:'Northern Hemisphere', year:'2019/20',
     desc:'Each winter snow spreads across the north, and each spring it melts back. White is snow cover seen by NASA satellites; the colour beneath is the air temperature.',
     secPerStep:2.6, globe:{lat:62, lon:40, dist:23}},
-  {id:'breathing', no:'C0', key:'-', kind:'cycle', color:'#7ee08a', title:'The Planet Breathing', card:'Northern forests inhale CO₂ every summer.', place:'Global', year:'2021',
+  {id:'breathing', no:'C0', key:'-', kind:'cycle', color:'#7ee08a', title:'The Planet Breathing', card:'Northern forests inhale CO₂ every summer.', place:'Global', year:'2021 to 2023',
     desc:'Every northern summer, forests wake up and pull carbon dioxide out of the air. Every winter, it comes back. Tall trees mark forests; their leaves grow and fall with each month\'s greenness. Brown smog shows how much CO₂ is in the air.',
     secPerStep:2.4 / 30.44, globe:{lat:42, lon:-100, dist:26}},
   {id:'wuhan', no:'E0', key:'=', kind:'event', color:'#ff6b5b', title:'The City That Went Quiet', card:'Wuhan locks down; the NO₂ haze fades away.', place:'Wuhan, China', year:'2019/20',
@@ -1404,7 +1426,7 @@ function insightHTML(S){
 function footerText(S){
   const P = S.P;
   const ds = S.SD.sources ? S.SD.sources.map(s => `${s.name}${s.kind === 'model' ? ' (model)' : ''}`).join(' · ')
-    : P.id === 'breathing' ? 'NASA MODIS MOD13C2 NDVI (2021) · NOAA GML Mauna Loa CO₂ (monthly)'
+    : P.id === 'breathing' ? 'NASA MODIS MOD13C2 NDVI (2021 to 2023, monthly) · NOAA GML Mauna Loa CO₂ (monthly)'
     : 'NASA OMI/Aura OMNO2d tropospheric NO₂ (0.25°, normal year = 2015 to 2019 mean aligned on Lunar New Year, band = their range; pooled clear-sky pixels, 5×5 cells, ±7 days); backdrop: NASA Blue Marble (GIBS), not data';
   const ex = S.layers.map(L => L.footer).filter(Boolean).join(' ');
   const base = P.id === 'breathing' ? 'Tree heights and haze are exaggerated.' : '';
@@ -1825,7 +1847,7 @@ function infoHTML(S){
   const P = S.P, rows = (S.SD.sources || []).map(s => `<tr><td><b>${esc(s.name)}</b><br>${esc(s.producer || '')}</td><td>${esc(s.resolution || '')}</td>
     <td><span class="tag ${s.kind === 'model' ? 'model' : ''}">${esc(s.kind || 'observed')}</span></td><td>${esc(s.period || '')}</td><td>${esc(s.baseline || '')}</td>
     <td>${s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">link</a>` : ''}</td></tr>`).join('');
-  const fixed = P.id === 'breathing' ? `<tr><td><b>MODIS MOD13C2 v061 NDVI</b><br>NASA LP DAAC</td><td>0.05°, monthly</td><td><span class="tag">observed</span></td><td>2021</td><td>none (cycle)</td><td><a href="https://doi.org/10.5067/MODIS/MOD13C2.061" target="_blank" rel="noopener">link</a></td></tr>
+  const fixed = P.id === 'breathing' ? `<tr><td><b>MODIS MOD13C2 v061 NDVI</b><br>NASA LP DAAC</td><td>0.05°, monthly</td><td><span class="tag">observed</span></td><td>2021 to 2023</td><td>none (cycle)</td><td><a href="https://doi.org/10.5067/MODIS/MOD13C2.061" target="_blank" rel="noopener">link</a></td></tr>
       <tr><td><b>Mauna Loa CO₂</b><br>NOAA GML</td><td>one station, monthly</td><td><span class="tag">observed</span></td><td>1958 to now</td><td>seasonal swing = CO₂ minus NOAA deseasonalized</td><td><a href="https://gml.noaa.gov/ccgg/trends/" target="_blank" rel="noopener">link</a></td></tr>`
     : P.id === 'wuhan' ? `<tr><td><b>OMI/Aura OMNO2d v003 tropospheric NO₂</b><br>NASA GES DISC</td><td>0.25°, daily (15-day composites)</td><td><span class="tag">observed</span></td><td>Dec 2019 to Apr 2020</td><td>2015 to 2019 mean aligned on Lunar New Year; band = their range</td><td><a href="https://doi.org/10.5067/Aura/OMI/DATA3007" target="_blank" rel="noopener">link</a></td></tr>
       <tr><td><b>Blue Marble shaded relief</b><br>NASA GIBS</td><td>~0.6 km</td><td><span class="tag">backdrop</span></td><td>n/a</td><td>not data</td><td><a href="https://www.earthdata.nasa.gov/engage/open-data-services-software/earthdata-developer-portal/gibs-api" target="_blank" rel="noopener">link</a></td></tr>` : '';
@@ -1877,9 +1899,11 @@ addEventListener('resize', resize); resize();
 // NDVI ground (Breathing): blend two monthly maps; keep only 3 on the GPU
 function setGround(m){
   if (!NDVI_TEX) return;
-  const i = Math.floor(m) % 12, f = m - Math.floor(m), s = f * f * (3 - 2 * f);
-  gU.uA.value = NDVI_TEX[i]; gU.uB.value = NDVI_TEX[(i + 1) % 12]; gU.uF.value = s;
-  if (i !== lastTexI){ const keep = new Set([i, (i + 1) % 12, (i + 2) % 12]);
+  const n = NDVI_TEX.length, lin = n > 12;   // several years: walk the maps in order; one year: cycle by calendar month
+  if (lin) m = Math.max(0, Math.min(n - 1, m));
+  const i = lin ? Math.floor(m) : Math.floor(m) % 12, f = m - Math.floor(m), s = f * f * (3 - 2 * f), nx = k => lin ? Math.min(n - 1, k) : k % 12;
+  gU.uA.value = NDVI_TEX[i]; gU.uB.value = NDVI_TEX[nx(i + 1)]; gU.uF.value = s;
+  if (i !== lastTexI){ const keep = new Set([i, nx(i + 1), nx(i + 2)]);
     NDVI_TEX.forEach((t, k) => { if (!keep.has(k) && t.__gpu){ t.dispose(); t.__gpu = false; } });
     keep.forEach(k => { if (!NDVI_TEX[k].__gpu && NDVI_TEX[k].image){ renderer.initTexture(NDVI_TEX[k]); NDVI_TEX[k].__gpu = true; } });
     lastTexI = i; }
@@ -1903,7 +1927,7 @@ function frame(now){
     // seconds of wind applied to particles this frame (real story time, capped for display: stated in the footer)
     flowSec = playing && !dragging ? Math.min(S.rt.stepS * dt / S.P.secPerStep, S.ctx.flowCap * dt) : 0;
     const d = S.rt.dateAt(pos), c = {flowSec, d};
-    if (S.P.id === 'breathing') setGround(monthFloat(d));
+    if (S.P.id === 'breathing') setGround(TEX_M0 == null ? monthFloat(d) : absMonth(d) - TEX_M0);
     // hero intensity: data-driven every frame; gaps ease toward normal (0.35), never invent a peak
     const I = heroIntensity(S, pos);
     const target = I == null ? .35 : I;

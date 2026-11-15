@@ -21,12 +21,16 @@ def story_js(sid, obj):
     print(out.relative_to(repo), round(out.stat().st_size / 1e6, 2), "MB")
 
 
-# ---- C4 The Planet Breathing (MODIS NDVI 2021 + Mauna Loa CO2)
+# ---- C4 The Planet Breathing (MODIS NDVI 2021 to 2023 band means + Mauna Loa CO2; trees/textures 2021)
+MULTI = sorted((data / "textures").glob("ndvi_20[0-9][0-9]_[01][0-9].jpg"))
+TEX = [p for p in MULTI if (data / "trees_0p5deg_2021_2023.bin").exists() or p.stem.startswith("ndvi_2021")]
+TREES = data / ("trees_0p5deg_2021_2023.bin" if (data / "trees_0p5deg_2021_2023.bin").exists() else "trees_0p5deg_2021.bin")
+NM = 36 if TREES.name.endswith("2021_2023.bin") else 12
 story_js("breathing", {
-    "timebase": "day", "step_s": 86400, "t0": "2021-01-01T00:00Z", "n": 365,
-    "tex": ["data:image/jpeg;base64," + b64(data / "textures" / f"ndvi_2021_{m:02d}.jpg") for m in range(1, 13)],
-    "trees": b64(data / "trees_0p5deg_2021.bin"),
-    "series": json.loads((data / "series.json").read_text()),   # full Mauna Loa record kept
+    "timebase": "day", "step_s": 86400, "t0": "2021-01-01T00:00Z", "n": 1095 if NM == 36 else 365,
+    "tex": ["data:image/jpeg;base64," + b64(p) for p in TEX], "tex_m0": "2021-01",
+    "trees": b64(TREES), "tree_months": NM, "tree_m0": "2021-01",
+    "series": json.loads((data / "series.json").read_text()),   # full Mauna Loa record kept; ndvi_3y + pairs_3y when present
 })
 # ---- E9 Wuhan lockdown (OMI NO2, 2015-19 baseline aligned on Lunar New Year)
 wd = repo / "data" / "wuhan"
