@@ -1,5 +1,39 @@
 # Earth Jukebox
 
+**Hear how the planet is connected.** 12 stories of real NASA Earth data on a 3D globe, played as music.
+
+## Run it
+
+No install, no build needed: the page is already built and works straight from the file.
+
+```bash
+git clone https://github.com/micheleoletti/earth-jukebox.git
+cd earth-jukebox
+git checkout c4-breathing
+open -a Safari playground/breathing.html
+```
+
+Chrome works too. Pick a story card; the first tap also starts the sound. Open one story directly with `playground/breathing.html#e2_ian` (ids are in `playground/stories/`).
+
+If your browser blocks local files, serve the folder instead and open http://localhost:8765/breathing.html:
+
+```bash
+python3 -m http.server 8765 --directory playground
+```
+
+Keys: `1` to `0`, `-`, `=` pick a story, `Space` play/pause, `M` mute, `I` sources, `R` rotate, `Shift+1...6` layers. Add `?reduced` to the URL for reduced motion.
+
+### Rebuild after editing
+
+```bash
+python3 playground/c4-src/build.py          # page source: playground/c4-src/template.html
+python3 data-pipeline/e1_canada_smoke.py    # re-run one story: needs numpy + netCDF4, internet, and an Earthdata token for NASA archives
+```
+
+More: [playground/BREATHING.md](playground/BREATHING.md) (files and controls), [playground/PERFORMANCE.md](playground/PERFORMANCE.md), [data-pipeline/STORY_FORMAT.md](data-pipeline/STORY_FORMAT.md), [music-engine/README.md](music-engine/README.md) (sound), [submission.md](submission.md).
+
+## About the challenge
+
 NASA Space Apps Challenge 2026 (Nov 14-15) entry for **The Earth Information Jukebox**.
 Challenge: https://www.spaceappschallenge.org/2026/challenges/the-earth-information-jukebox/
 
