@@ -46,6 +46,7 @@ button{font-family:inherit}
 #season{margin-top:6px;font-size:13px;color:#d2d9ee;min-height:18px;text-shadow:0 1px 8px #000,0 0 3px #000}
 
 #ctl{position:fixed;top:16px;right:16px;z-index:5;display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:999px;background:rgba(9,13,25,.55);border:1px solid var(--line);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+#ctl #snd span{display:none} #ctl #snd{width:34px;padding:0;justify-content:center;font-size:16px}
 #ctl #sndMode{width:auto;border-radius:999px;padding:0 12px;font:600 12px/1 -apple-system,Helvetica,Arial,sans-serif;white-space:nowrap}
 body.exploring #play, body.exploring #rot{display:none}   /* globe screen: the top-right pill keeps only the sound controls */
 #read{position:fixed;right:20px;top:74px;z-index:3;border-radius:14px;padding:12px 14px;width:250px;max-height:calc(100vh - 380px);overflow:auto}
@@ -162,7 +163,8 @@ canvas#c.grab{cursor:grab} canvas#c.grabbing{cursor:grabbing}
 .mode button{font:600 12px/1 -apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;color:var(--muted);background:none;border:0;border-radius:999px;padding:6px 11px;cursor:pointer}
 .mode button[aria-pressed="true"]{color:#06101f;background:#7fd4ff}
 #landing .mode{margin-right:10px}
-body.simple #src, body.simple #infoBtn, body.simple #read{display:none !important}
+body.simple #src{display:none !important}
+#read, #infoBtn{display:none !important}   /* data panel and Sources button removed from the UI */
 #season{display:none}
 #note{font-size:14px;line-height:1.4;color:var(--text);margin:6px 2px 2px;min-height:20px;transition:opacity .4s}
 #note b{color:#7fd4ff;font-weight:600;margin-right:6px}
@@ -655,7 +657,7 @@ const glowU = () => ({uShow:{value:0}, uGlow:{value:0}, uTime:U.uTime, uSun:U.uS
 function mkEicFrames(Ld, ctx){
   const F = Ld.frames, stops = Ld.colorbar.stops, imgs = F.map(f => { const im = new Image(); im.src = f.img; return im; });
   const cnv = document.createElement('canvas'); cnv.width = 1024; cnv.height = 512; const c2 = cnv.getContext('2d', {willReadFrequently:true});
-  let pix = null, pixK = -1;
+  let pix = null, pixK = -1, pixBroken = false;
   const tA = new THREE.Texture(), tB = new THREE.Texture(); [tA, tB].forEach(t => { t.colorSpace = THREE.SRGBColorSpace; t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; });
   let kA = -1, kB = -1;
   const u = {...glowU(), uA:{value:tA}, uB:{value:tB}, uF:{value:0}};
@@ -670,8 +672,16 @@ function mkEicFrames(Ld, ctx){
   const at = p => { let i = 0; while (i < F.length - 1 && F[i + 1].t <= p) i++; const j = Math.min(F.length - 1, i + 1), g = F[j].t - F[i].t || 1;
     const f = clamp01(((p - F[i].t) / g - .85) / .15); return [i, j, f * f * (3 - 2 * f)]; };
   const setTex = (t, k) => { if (!imgs[k].complete) return false; t.image = imgs[k]; t.needsUpdate = true; return true; };
+  // preferred: the numeric grid read from the frames' colours by the pipeline (no image pixels read in the browser)
+  const CL = Ld.cells, cellArr = CL ? CL.frames.map(b => b64u8(b)) : null;
+  const cellAt = (k, lat, lon) => { const x = Math.min(CL.w - 1, Math.max(0, Math.floor((lon - CL.lon0) / 360 * CL.w))), y = Math.min(CL.h - 1, Math.max(0, Math.floor((CL.lat0 - lat) / 180 * CL.h)));
+    const b = cellArr[k][y * CL.w + x]; return b ? CL.values[b - 1] : 0; };
   const valueAt = (k, lat, lon) => {
-    if (k !== pixK){ if (!imgs[k].complete) return null; c2.clearRect(0, 0, 1024, 512); c2.drawImage(imgs[k], 0, 0, 1024, 512); pix = c2.getImageData(0, 0, 1024, 512).data; pixK = k; }
+    if (cellArr) return cellAt(k, lat, lon);
+    if (pixBroken) return null;
+    if (k !== pixK){ if (!imgs[k].complete) return null; c2.clearRect(0, 0, 1024, 512); c2.drawImage(imgs[k], 0, 0, 1024, 512);
+      try { pix = c2.getImageData(0, 0, 1024, 512).data; } catch (e){ console.warn('EIC pixels unreadable here (browser security); tension falls back to silence', e); pixBroken = true; return null; }
+      pixK = k; }
     const x = Math.min(1023, Math.max(0, Math.floor((lon + 180) / 360 * 1024))), y = Math.min(511, Math.max(0, Math.floor((90 - lat) / 180 * 512))), o = (y * 1024 + x) * 4;
     if (pix[o + 3] < 128) return 0;   // transparent = within about 2 mm/day of usual
     let best = null, bd = 1e9; for (const s of stops){ const d = (s[0] - pix[o]) ** 2 + (s[1] - pix[o + 1]) ** 2 + (s[2] - pix[o + 2]) ** 2; if (d < bd){ bd = d; best = s[3]; } }
@@ -1553,7 +1563,7 @@ const STORIES = [
   {id:'e5_po_valley', no:'E5', key:'5', hidden:true, kind:'event', color:'#ff8f7a', title:'Italy Holds Its Breath', card:'Lockdown halves the Po Valley NO₂ while the wind stays normal.', place:'Po Valley, Italy', year:'2020',
     desc:'The Po Valley is one of the most polluted places in Europe. When Italy locked down in March 2020, traffic stopped and nitrogen dioxide (NO₂) fell. The haze is NO₂ seen from space; pillars are ground stations; streaks are the wind.',
     secPerStep:.35, region:{lat:45.3, lon:10, alt:1.2}, fog:true, fogGain:6},
-  {id:'e6_iberia', no:'E6', key:'6', kind:'event', color:'#ff5a3c', title:'Heat Before the Fire', card:'Spain and Portugal bake in two heatwaves; the forests burn.', place:'Spain and Portugal', year:'2022',
+  {id:'e6_iberia', no:'E6', key:'6', hidden:true, kind:'event', color:'#ff5a3c', title:'Heat Before the Fire', card:'Spain and Portugal bake in two heatwaves; the forests burn.', place:'Spain and Portugal', year:'2022',
     desc:'In summer 2022 two heatwaves hit Spain and Portugal, and large forest fires followed. The yellow to red tint on the land is the afternoon air temperature from a model, pillars are the afternoon temperature measured at weather stations (the glass shell is a normal day for that station), flames are fires seen by NASA satellites, and the drifting haze is smoke (model).',
     secPerStep:.45, region:{lat:40, lon:-4.5, alt:2.6, shift:1.75, tilt:4}, persist:2.5, pointSize:5, pillarH:.5, pillarR:.011, fieldStyle:{tmax:'land warm'}, bigLabels:true,
     labelPick:['Madrid', 'Seville', 'Lisbon', 'Zamora', 'Ourense', 'Zaragoza', 'Bilbao', 'Badajoz'], labelSep:1.2, kidLabels:3,
@@ -1575,7 +1585,7 @@ const STORIES = [
   {id:'c4_africa_fire', no:'C4', key:'9', kind:'cycle', color:'#ffa84c', title:'Africa’s Fire Belt', card:'Fires sweep north then south of the equator with the dry season.', place:'Sub-Saharan Africa', year:'2019',
     desc:'Africa has more fires than any other continent, mostly set to clear grassland in the dry season. The dry season moves across the equator (dashed line), so the fire belt sweeps north of it, then south. The chart follows the southern half: its fires rise about a month after its rain stops, peaking in August.',
     secPerStep:2.6, globe:{lat:-13, lon:20, dist:20}, pointSize:3, fieldK:{rain:.5}},
-  {id:'c5_snow', no:'C5', key:'0', kind:'cycle', color:'#e8f4ff', title:'Snow Follows the Cold', card:'The northern snow cover grows and melts with temperature.', place:'Northern Hemisphere', year:'2019/20',
+  {id:'c5_snow', no:'C5', key:'0', hidden:true, kind:'cycle', color:'#e8f4ff', title:'Snow Follows the Cold', card:'The northern snow cover grows and melts with temperature.', place:'Northern Hemisphere', year:'2019/20',
     desc:'Each winter snow spreads across the north, and each spring it melts back. White is snow cover seen by NASA satellites; the colour beneath is the air temperature.',
     secPerStep:2.6, globe:{lat:72, lon:60, dist:26}, fieldStyle:{temp:'freeze'}, dots:false},
   {id:'breathing', no:'C0', key:'-', kind:'cycle', color:'#7ee08a', title:'The Planet Breathing', card:'Northern forests inhale CO₂ every summer.', place:'Global', year:'2021 to 2023',
@@ -1713,6 +1723,15 @@ const KID_NOTES = {   // [story step, text]; steps match the data's own beats an
     [129, 'The city opens again.']],
 };
 const lower = t => t ? t[0].toLowerCase() + t.slice(1) : t;
+// Simple-mode lane subtitles: what each line (and its voice) means, in a few plain words
+const KID_SUBS = {
+  c3_monsoon_eic:{rain:'how much rain falls', eic:'rain vs usual (NASA)', wind:'wind from the sea', green:'how green plants are', water:'water in the ground'},
+  breathing:{trees:'how green forests are', co2:'CO2 gas in the air'},
+  e2_ian:{track:"the storm's strength", wind:'wind in Fort Myers', surge:'how high the sea is', pressure:'low = stronger storm', rain:'rain from space'},
+  e3_tonga:{ring:'where the wave is', pressure:'the air shaking', gauges:'the sea going up, down'},
+  c4_africa_fire:{fires_s:'fires seen from space', rain_s:'rain in the south', fires:'fires seen from space', rain:'rain'},
+};
+const kidSub = L => (story && KID_SUBS[story.P.id] && KID_SUBS[story.P.id][L.id]) || '';
 // the comment under the chart: kid note (simple) or the data beat (science) for the current position
 function noteList(S){ if (!S._kidNotes) S._kidNotes = (KID_NOTES[S.P.id] || []).map(([t, text]) => ({t, text:typeof text === 'function' ? text(S) : text}));
   return kidOn(S) && KID_NOTES[S.P.id] ? S._kidNotes : (S.beats || []); }
@@ -2037,7 +2056,9 @@ let LABEL_W = innerWidth < 760 ? 114 : 162;
 const DX = 22;   // lane dot x: room on its left for the nested connection threads
 let lanes = [];
 const bigLaneL = () => SIMPLE && story.P.bigLane ? LAYERS.find(L => L.id === story.P.bigLane) || story.heroL : story.heroL;
-const laneH = i => LAYERS[i].noLane ? 0 : LAYERS[i] === bigLaneL() ? HERO_H : LANE_H;
+// lanes that take part in a connection are all drawn at the same (tall) height, so the linked curves can be compared by eye
+const linkedLane = L => story && (story.links || []).some(l => l.A === L || l.B === L);
+const laneH = i => LAYERS[i].noLane ? 0 : (LAYERS[i] === bigLaneL() || linkedLane(LAYERS[i])) ? HERO_H : LANE_H;
 const laneTop = i => { let y = 4; for (let k = 0; k < i; k++) y += laneH(k); return y; };
 function chartFrame(){
   const dpr = Math.min(devicePixelRatio, 2), w = chart.clientWidth, h = chart.clientHeight;
@@ -2129,7 +2150,7 @@ function drawLanes(){
     cx.fillStyle = on ? '#e9edf8' : ln.has ? '#9aa5c4' : 'rgba(143,154,186,.45)'; cx.font = '600 12px -apple-system,Helvetica,Arial';
     const nm = nmL(ln.L) + (hero ? ' ♪' : ''); cx.fillText(LABEL_W < 130 && nm.length > 13 ? nm.slice(0, 12) + '…' : nm, DX + 12, y0 + 18);
     cx.fillStyle = 'rgba(154,165,196,' + (ln.has ? .9 : .4) + ')'; cx.font = '9.5px -apple-system,Helvetica,Arial';
-    const what = ln.has ? (SIMPLE ? '' : ln.L.what) : (SIMPLE ? 'no data' : 'no data for this period'); const mc = LABEL_W < 130 ? 14 : 25; cx.fillText(what.length > mc + 1 ? what.slice(0, mc) + '…' : what, DX + 12, y0 + 30);
+    const what = ln.has ? (SIMPLE ? kidSub(ln.L) : ln.L.what) : (SIMPLE ? 'no data' : 'no data for this period'); const mc = LABEL_W < 130 ? 14 : 25; cx.fillText(what.length > mc + 1 ? what.slice(0, mc) + '…' : what, DX + 12, y0 + 30);
     if (i) { cx.fillStyle = 'rgba(140,170,255,.07)'; cx.fillRect(LABEL_W, y0, w - LABEL_W, 1); }
     if (!ln.has) return;
     cx.fillStyle = 'rgba(154,165,196,.75)'; cx.font = '9px -apple-system,Helvetica,Arial'; cx.textAlign = 'right';
@@ -2188,7 +2209,7 @@ const TOGETHER = {
 };
 function drawThread(X, ys, w){
   const S = story; if (!S.links || !S.links.length) return;
-  togetherFX(S);
+  try { togetherFX(S); } catch (e){ if (!window.__fxErr){ window.__fxErr = e; console.warn('together fx', e); } }
   const rt = S.rt, gr = [120, 128, 150];
   S.links.forEach((l, li) => {
     const ai = LAYERS.indexOf(l.A), bi = LAYERS.indexOf(l.B); if (ai < 0 || bi < 0) return;
@@ -2333,7 +2354,8 @@ const degree = (base, i) => { const n = SCALE.length; return base + 12 * Math.fl
 const snapScale = m => { const r = (((m - 62) % 12) + 12) % 12; let best = SCALE[0], d = 99; SCALE.forEach(v => { const e = Math.min(Math.abs(v - r), 12 - Math.abs(v - r)); if (e < d){ d = e; best = v; } }); return m - r + best; };
 const midiHz = m => 440 * Math.pow(2, (m - 69) / 12);
 const Music = window.Music = {
-  ctx:null, master:null, state:'off', muted:false, vol:.75, mode:'nature',   // the Nature sound mode (recordings + drone + harmony) is the only mode in the UI drums:null, synth:{}, t0:0, V:.35, lastSet:0, brassF:0, idle:false,
+  // mode 'nature' (recordings + drone + harmony) is the only sound mode in the UI
+  ctx:null, master:null, state:'off', muted:false, vol:.75, mode:'nature', drums:null, synth:{}, t0:0, V:.35, lastSet:0, brassF:0, idle:false,
   start(){   // must run inside a user gesture (iOS)
     if (this.ctx){ if (this.ctx.state !== 'running') this.ctx.resume(); if (this.muted) this.setMuted(false); return; }
     const ctx = this.ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -2345,16 +2367,16 @@ const Music = window.Music = {
     this.master.connect(shelf); shelf.connect(comp); comp.connect(ctx.destination);
     this.bus = ctx.createGain(); this.bus.gain.value = .9; this.bus.connect(this.master);
     this.state = 'loading'; updateSoundBtn();
-    this.load().catch(e => { console.error('music', e); this.state = 'error'; updateSoundBtn(); });
+    this.load().catch(e => { console.error('music', e); this.state = 'error'; this.err = String(e && e.message || e); updateSoundBtn(); });
   },
   async load(){
     const ctx = this.ctx;
     await loadScript('audio/engine-config.js').catch(() => {});
-    await loadScript('audio/drums.js');
     const dec = b64 => { const u = b64u8(b64); return ctx.decodeAudioData(u.buffer); };
-    const dbufs = await Promise.all(window.EJ_DRUMS.loops.map(dec));
-    const LOOP = dbufs[0].duration;
-    this.loop = LOOP; this.t0 = ctx.currentTime + .15;
+    this.t0 = ctx.currentTime + .15; this.drums = [];
+    let dbufs = [];
+    try { await loadScript('audio/drums.js'); dbufs = await Promise.all(window.EJ_DRUMS.loops.map(dec)); this.loop = dbufs[0].duration; }
+    catch (e){ console.warn('drums (not needed in Nature mode)', e); }
     this.drums = dbufs.map(bf => { const s = ctx.createBufferSource(); s.buffer = bf; s.loop = true; s.loopEnd = bf.duration; const g = ctx.createGain(); g.gain.value = 0; s.connect(g); g.connect(this.bus); s.start(this.t0); return g; });
     Conn.setup(ctx, this.master, this.t0);
     // NATURE mode: real CC0 recordings (fire, rain, wind, waves, traffic, birds...) driven by the data, loaded right away
@@ -2364,10 +2386,10 @@ const Music = window.Music = {
     try { await loadScript('audio/harmony.js'); Harmony.start(ctx, this.master); Harmony.setScale(SCALE); Harmony.setOn(this.mode === 'nature' && !this.idle); }
     catch (e){ console.warn('harmony', e); }
     this.drone = spaceDrone(ctx, this.master);
-    this.state = 'on'; updateSoundBtn(); this.apply(true);
-    if (story) this.storyChanged(story);
+    this.state = 'on'; updateSoundBtn();
+    try { this.apply(true); if (story) this.storyChanged(story); } catch (e){ console.warn('music story setup', e); }
     // synth layers: decoded one by one, each started in phase with the drums
-    await loadScript('audio/synth-layers.js');
+    try { await loadScript('audio/synth-layers.js'); } catch (e){ console.warn('synth layers', e); return; }
     const cfg = (window.ENGINE_CONFIG || {}).synth || {};
     for (const [id, curve] of SYNTH){
       if (MOBILE && !MOBILE_SYNTH.includes(id)) continue;
@@ -2733,6 +2755,8 @@ function updateSoundBtn(){
   const b = $('snd'), st = Music.state;
   b.classList.toggle('off', st === 'off' || Music.muted || st === 'error');
   b.querySelector('span').textContent = st === 'off' ? 'Tap for sound' : st === 'loading' ? 'Loading sound…' : st === 'error' ? 'Sound failed' : Music.muted ? 'Muted' : 'Sound on';
+  b.firstChild.nodeValue = st === 'loading' ? '… ' : st === 'error' ? '⚠ ' : Music.muted || st === 'off' ? '🔇 ' : '♪ ';
+  b.title = (st === 'off' ? 'Sound off: tap to start' : st === 'loading' ? 'Loading sound' : st === 'error' ? 'Sound failed: ' + (Music.err || '') : Music.muted ? 'Muted (M)' : 'Sound on (M)');
   b.setAttribute('aria-label', st === 'off' ? 'Start sound' : Music.muted ? 'Unmute' : 'Mute');
 
 }
@@ -2935,8 +2959,10 @@ function frame(now){
     LAYERS.forEach(L => { L.glow = L === S.heroL ? I_s : 0; animateLayer(L, pos, dt, c); });
     Music.brassF = brassFactor(S, pos);
     Music.setV(I_s); Music.apply();
-    if (window.Nature && Nature.ready && now - (window.__natT || 0) > 120){ window.__natT = now; Nature.set(Music.mode === 'nature' ? natureLevels(S, pos) : {});
-      if (window.Harmony && Music.mode === 'nature') Harmony.set(harmonyInputs(S, pos)); }   // ~8 times a second
+    if (window.Nature && Nature.ready && now - (window.__natT || 0) > 120){ window.__natT = now;
+      // sound feeds never stop the animation: any error is logged once and skipped
+      try { Nature.set(Music.mode === 'nature' ? natureLevels(S, pos) : {}); if (window.Harmony && Music.mode === 'nature') Harmony.set(harmonyInputs(S, pos)); }
+      catch (e){ if (!window.__sndErr){ window.__sndErr = e; console.warn('sound feed', e); } } }   // ~8 times a second
     // lock-in: the rolling link is strongest here
     if (S.rolling && S.rolling.lockStep != null && !lockFired && prev <= S.rolling.lockStep && pos > S.rolling.lockStep && playing){
       lockFired = true; lockGlow = 1; Conn.lockIn(); if (window.Harmony && Music.mode === 'nature') Harmony.swell();

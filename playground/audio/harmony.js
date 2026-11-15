@@ -78,9 +78,11 @@
     const s = this.scale, r = pc(m - D2);
     // in tune (correlated) = only pure, positive intervals above the main voice: 1st connection a fifth, 2nd a major third, 3rd an
     // octave, 4th the fifth above; not correlated = unchanged, the voice slides into its half-step rub (apply())
-    const p = [66, 69, 74, 78][k % 4];   // F#4 (3rd), A4 (5th), D5 (octave), F#5 (10th): chord tones of D, from the root
+    const p = [62, 66, 69, 74][k % 4];   // lowest note of each cluster: D4, F#4, A4, D5 = D major in root position, 1st inversion, 2nd inversion, root position up
     return p;
   };
+  // the next chord tones of D major above a note (tones: D, F#, A)
+  H.clusterFor = function(p0){ const out = [p0]; let q = p0; while (out.length < 3){ q++; if ([0, 4, 7].includes(pc(q - D2))) out.push(q); } return out; };
   H.tensionFor = function(m){
     const s = this.scale, ch = this.chord(), mr = pc(m - D2);
     const cands = s.filter(x => !ch.includes(x) && ch.some(c => Math.abs(x - c) === 1 || Math.abs(x - c) === 11));
@@ -102,7 +104,9 @@
     this.v.partner = voice(ctx, this.out, this.partnerFor(m), CUT.partner, 2);   // bank 0 consonant, bank 1 rub
     glide(this.v.partner.banks[1], m + 1, ctx.currentTime, .01);
     this.v.tension = voice(ctx, this.out, this.tensionFor(m), CUT.tension);
-    for (let k = 0; k < MAXL; k++){ const lv = voice(ctx, this.out, this.linkFor(m, k), 1400, 1); lv.banks[0].g.gain.value = 0; this.lv.push(lv); }
+    // each connection = a small cluster of 3 chord tones (its note + the next two D-major chord tones above it): a richer, still consonant chord
+    for (let k = 0; k < MAXL; k++){ const p0 = this.linkFor(m, k), lv = voice(ctx, this.out, p0, 1400, 3);
+      this.clusterFor(p0).forEach((q, i) => { lv.banks[i].oscs.forEach(o => { o.type = 'sine'; o.frequency.value = hz(q); }); lv.banks[i].g.gain.value = 0; }); this.lv.push(lv); }   // pure sines: soft, not punchy
     this.v.root.banks[0].g.gain.value = 1; this.v.tension.banks[0].g.gain.value = 1;
     this.v.partner.banks[0].g.gain.value = 1;
     this.apply(true);
@@ -142,9 +146,9 @@
       const on = k < nl, w = on ? clamp01((this.links[k] - .3) / .4) : 0, p = this.linkFor(m, k), b = lv.banks;
       const mv = this.moves && this.moves[k] != null ? this.moves[k] : 1, breathe = .35 + .65 * mv;   // soft floor, swells while moving together
       const tgt = w * w * (3 - 2 * w) * breathe, rising = tgt > b[0].g.gain.value + .01;
-      b[0].g.gain.setTargetAtTime(tgt, now, rising ? .08 : .5);   // fast entry on a correlation, decay unchanged
+      b.forEach((bk, i) => bk.g.gain.setTargetAtTime(tgt * (i ? .55 : 1), now, rising ? .08 : .5));   // fast entry on a correlation, decay unchanged; the cluster's upper notes a bit softer
       { const lvl = on ? .6 / Math.sqrt(Math.max(1, nl)) * (now < this.swellUntil ? 1.3 : 1) : 0; level(lv, lvl, now, lvl > lv.g.gain.value + .005 ? .12 : TC_GAIN); }   // louder connection voices, fast entry
-      lv.lp.frequency.setTargetAtTime(2200, now, TC_FILTER);   // a bit brighter so the connection notes stand out
+      lv.lp.frequency.setTargetAtTime(1600, now, TC_FILTER);   // sines are already soft; a gentle top keeps the high notes round
     });
     // tension voice
     { const tf = hz(this.tensionFor(ns[0])); v.tension.banks[0].oscs.forEach(o => { if (Math.abs(o.frequency.value - tf) > .5) o.frequency.setValueAtTime(tf, now); }); }   // fixed per story scale: jumps (it is silent unless tense), never glides
