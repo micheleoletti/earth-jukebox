@@ -17,3 +17,4 @@ music-engine/prototype/bounces/*.wav
 music-engine/prototype/samples/
 
 __pycache__/
+.wrangler/
