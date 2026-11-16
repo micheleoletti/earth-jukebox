@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Intensity Knob</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #0a0e1a; --card: #121a2c; --line: #24304d; --text: #e8ecf5; --muted: #8893ab; --accent: #e8665c; --cool: #4f8fe8; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: Inter, system-ui, sans-serif; min-height: 100vh; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 28px 16px 60px; display: flex; flex-direction: column; align-items: center; gap: 22px; }
+  header { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+  .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .mono { font-family: "JetBrains Mono", monospace; }
+  button { font: inherit; color: inherit; cursor: pointer; border: 1px solid var(--line); background: var(--card); border-radius: 12px; }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  #play { padding: 12px 22px; font-weight: 800; background: var(--accent); color: #111; border: none; min-width: 110px; }
+  .stage { position: relative; width: min(420px, 92vw); aspect-ratio: 1; }
+  #glow { position: absolute; inset: 0; border-radius: 50%; pointer-events: none; }
+  #knob { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; outline: none; }
+  #knob:active { cursor: grabbing; }
+  #knob:focus-visible .face { stroke: var(--accent); stroke-width: 3; }
+  .readout { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+  .readout b { font-size: 64px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+  .readout span { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .14em; margin-top: 8px; }
+  .versions { width: 100%; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .v { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 8px; text-align: center; font-size: 12px; color: var(--muted); }
+  .v b { display: block; color: var(--text); font-size: 13px; margin-bottom: 6px; }
+  .v .m { height: 6px; background: #0d1424; border-radius: 99px; overflow: hidden; }
+  .v .m i { display: block; height: 100%; width: 0; background: var(--accent); }
+  .row { width: 100%; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+  .tg { padding: 8px 12px; font-size: 13px; }
+  .tg[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+  .bars { display: flex; gap: 4px; margin-left: auto; }
+  .bars i { width: 14px; height: 14px; border-radius: 4px; background: var(--card); border: 1px solid var(--line); }
+  .bars i.on { background: var(--accent); border-color: var(--accent); }
+  input[type=range] { accent-color: var(--accent); }
+  .rhythms { width: 100%; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .rh { padding: 8px 14px; font-size: 13px; font-weight: 600; }
+  .rh[aria-pressed="true"] { background: var(--accent); color: #111; border-color: var(--accent); }
+  .rh[disabled] { opacity: .5; cursor: progress; }
+  .note { color: var(--muted); font-size: 12px; line-height: 1.55; width: 100%; }
+  .drones { width: 100%; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; }
+  .drones h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); font-weight: 600; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .drones h2 button { font-size: 11px; padding: 4px 10px; text-transform: none; letter-spacing: 0; }
+  .dr { display: grid; grid-template-columns: 34px 1.3fr 1fr 1fr 1fr; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); font-size: 13px; }
+  .dr:first-of-type { border-top: none; }
+  .dr.head { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; border-top: none; padding-bottom: 0; }
+  .dr small { display: block; color: var(--muted); font-size: 11px; }
+  .dr input[type=range] { width: 100%; }
+  .sw { width: 34px; height: 20px; border-radius: 99px; padding: 0; position: relative; background: #0d1424; }
+  .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 12px; height: 12px; border-radius: 50%; background: var(--muted); transition: transform .15s, background .15s; }
+  .sw[aria-pressed="true"] { border-color: var(--accent); }
+  .sw[aria-pressed="true"]::after { transform: translateX(14px); background: var(--accent); }
+  .dr.off .rng, .dr.off .notes { opacity: .35; }
+  .dr.lr { grid-template-columns: 34px 1.3fr 1fr 1fr; }
+  .curve { display: flex; gap: 3px; align-items: flex-end; height: 22px; }
+  .curve i { flex: 1; background: var(--line); border-radius: 2px; }
+  .curve i.on { background: var(--accent); }
+  .notes { display: flex; gap: 4px; margin-top: 5px; flex-wrap: wrap; }
+  .nt { font: 600 11px "JetBrains Mono", monospace; padding: 2px 7px; border-radius: 7px; color: var(--muted); }
+  .nt[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: #0d1424; }
+  .lvl-m { height: 4px; background: #0d1424; border-radius: 99px; overflow: hidden; margin-top: 4px; }
+  .lvl-m i { display: block; height: 100%; width: 0; background: var(--accent); }
+  @media (max-width: 600px) { .dr { grid-template-columns: 34px 1fr 1fr; } .dr .tone, .dr.head .tone, .dr .fol, .dr.head .fol { display: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Intensity Knob</h1>
+      <div class="sub">Earth Jukebox music engine. Synthesized drums (pick a rhythm, 5 intensities each) + synth layers + optional LABS drones, all in D at 96 BPM. One knob = intensity.</div>
+    </div>
+    <button id="play">▶ Play</button>
+  </header>
+
+  <div class="rhythms" id="rhythms" role="group" aria-label="Rhythm"></div>
+
+  <div class="stage">
+    <div id="glow"></div>
+    <svg id="knob" viewBox="0 0 400 400" role="slider" tabindex="0" aria-label="Intensity" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <defs>
+        <linearGradient id="grad" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0" stop-color="#4f8fe8"/><stop offset="0.55" stop-color="#f2a65a"/><stop offset="1" stop-color="#e8665c"/>
+        </linearGradient>
+        <radialGradient id="faceg" cx="0.45" cy="0.35" r="0.75">
+          <stop offset="0" stop-color="#1f2a44"/><stop offset="1" stop-color="#0e1526"/>
+        </radialGradient>
+      </defs>
+      <path id="track" fill="none" stroke="#1a2440" stroke-width="18" stroke-linecap="round"/>
+      <path id="arc" fill="none" stroke="url(#grad)" stroke-width="18" stroke-linecap="round"/>
+      <g id="ticks"></g>
+      <circle class="face" cx="200" cy="200" r="128" fill="url(#faceg)" stroke="#24304d" stroke-width="2"/>
+      <line id="pointer" x1="200" y1="200" x2="200" y2="92" stroke="#e8ecf5" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="200" cy="200" r="10" fill="#e8ecf5"/>
+    </svg>
+    <div class="readout" style="top:42%"><b id="val">0</b><span id="lvl">Calm</span></div>
+  </div>
+
+  <div class="versions" id="versions"></div>
+
+  <div class="row">
+    <button class="tg" id="sim" aria-pressed="false">Simulate signal</button>
+    <span>Volume</span><input id="vol" type="range" min="0" max="100" value="80" aria-label="Volume" style="width:140px">
+    <div class="bars" id="bars" aria-hidden="true"></div>
+  </div>
+  <div class="drones" id="synthpanel">
+    <h2><span>Synth layers (switch any on; each fades in at its own intensity)</span><button id="lreset">Reset</button></h2>
+    <div class="dr head lr"><span></span><span>Layer</span><span>Volume</span><span class="fol">Plays at</span></div>
+    <div id="llist"></div>
+  </div>
+
+  <div class="drones">
+    <h2><span>Drones (soft held notes in D: pick D↓↓ D↓ D F♯ A per layer)</span><button id="dreset">Reset</button></h2>
+    <div class="dr head"><span></span><span>Layer</span><span>Volume</span><span class="fol">Follow knob</span><span class="tone">Tone</span></div>
+    <div id="dlist"></div>
+    <p class="note" style="margin-top:8px">Follow knob: right = louder as intensity rises, left = fades out as intensity rises, middle = steady. Tone: low-pass filter. Settings are remembered in this browser.</p>
+  </div>
+
+  <p class="note">Pick a rhythm above the knob (switching crossfades in time). Drag the knob up/down (or around), scroll on it, or use arrow keys. Keys 1–5 jump to a version, Space plays/stops. All 5 loops run in sync, so turning the knob only changes their volumes and never breaks the groove. Drums and synth layers are synthesized in the browser (synth-drums.js, loop-engine.js) and bounced to seamless loops. Optional drones: Spitfire LABS Textural Pads and Trumpet Fields (off in the default mix). See music-engine/README.md.</p>
+</div>
+
+<script src="loop-bounces.js"></script>
+<script src="drones.js"></script>
+<script src="synth-layers.js"></script>
+<script src="engine-config.js"></script>
+<script>
+const NAMES = ['Calm', 'Stirring', 'Pulse', 'Driving', 'Epic'];
+let LOOP = 20; const BARS = 8, A0 = -135, A1 = 135;   // knob sweep in degrees
+let ctx, master, analyser, gains = [], t0 = 0, running = false;
+let activeSet = null, rhythm = 0;
+const SETS = window.LOOP_SETS || [];
+const CFG = window.ENGINE_CONFIG || {};
+try { const saved = localStorage.getItem('rhythm'); const i = SETS.findIndex(st => st.name === (saved || CFG.rhythm || window.LOOP_DEFAULT)); if (i >= 0) rhythm = i; } catch (e) {}
+let V = 0;                                          // knob value 0..1
+const $ = id => document.getElementById(id);
+
+/* ---------- knob drawing ---------- */
+const pt = (deg, r) => { const a = (deg - 90) * Math.PI / 180; return [200 + r * Math.cos(a), 200 + r * Math.sin(a)]; };
+const arcPath = (d0, d1, r) => { const [x0, y0] = pt(d0, r), [x1, y1] = pt(d1, r); return `M${x0} ${y0} A${r} ${r} 0 ${d1 - d0 > 180 ? 1 : 0} 1 ${x1} ${y1}`; };
+$('track').setAttribute('d', arcPath(A0, A1, 165));
+$('ticks').innerHTML = [0, 1, 2, 3, 4].map(k => { const d = A0 + (A1 - A0) * k / 4, [x0, y0] = pt(d, 140), [x1, y1] = pt(d, 150), [tx, ty] = pt(d, 192);
+  return `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="#3a4870" stroke-width="3"/><text x="${tx}" y="${ty + 5}" fill="#8893ab" font-size="15" font-family="JetBrains Mono" text-anchor="middle">${k + 1}</text>`; }).join('');
+$('versions').innerHTML = NAMES.map((n, k) => `<div class="v"><b>${k + 1} · ${n}</b><div class="m"><i id="m${k}"></i></div></div>`).join('');
+$('bars').innerHTML = '<i></i>'.repeat(BARS);
+
+function weights(v) { const p = v * 4, i = Math.min(3, Math.floor(p)), f = p - i, w = [0, 0, 0, 0, 0]; w[i] = 1 - f; w[i + 1] = f; return w; }
+function setV(v, fromSim = false) {
+  V = Math.max(0, Math.min(1, v));
+  const d = A0 + (A1 - A0) * V, [x, y] = pt(d, 108);
+  $('pointer').setAttribute('x2', x); $('pointer').setAttribute('y2', y);
+  $('arc').setAttribute('d', V > 0.003 ? arcPath(A0, d, 165) : '');
+  $('val').textContent = Math.round(V * 100);
+  $('lvl').textContent = NAMES[Math.round(V * 4)];
+  $('knob').setAttribute('aria-valuenow', Math.round(V * 100));
+  $('knob').setAttribute('aria-valuetext', `${Math.round(V * 100)}, ${NAMES[Math.round(V * 4)]}`);
+  const w = weights(V); w.forEach((g, k) => $('m' + k).style.width = (g * 100) + '%');
+  document.documentElement.style.setProperty('--accent', V < 0.35 ? '#4f8fe8' : V < 0.7 ? '#f2a65a' : '#e8665c');
+  if (ctx) w.forEach((g, k) => gains[k].gain.setTargetAtTime(g, ctx.currentTime, 0.12));
+  applyDrones(); applyLayers();
+  if (!fromSim && sim) toggleSim(false);
+}
+
+/* ---------- synth layers ---------- */
+// knob -> layer level (5 points: intensity 1..5), from the original loop-engine mix
+const LAYERS = [   // id, label, curve over knob positions 1..5, default volume, on by default
+  ['sub', 'Sub bass', [0.9, 0.9, 1, 1, 1], 0.3, 1], ['pad', 'Synth pad', [1, 1, 0.8, 0.55, 0.35], 0.7, 1],
+  ['chime', 'Chimes', [1, 0.7, 0.3, 0, 0], 0.9, 1], ['thump', 'Low pulse', [0, 0.9, 1, 0.65, 0.45], 0.7, 1],
+  ['brass', 'Brass stabs', [0, 0, 0, 0.6, 1], 0.9, 1], ['braam', 'Braams', [0, 0, 0, 0.65, 1], 0.6, 1], ['riser', 'Riser', [0, 0, 0, 0, 1], 1, 1],
+  ['trumpet', 'Synth trumpets (detuned field)', [0.6, 0.8, 1, 1, 1], 0.5, 0],
+  ['shimmer', 'Shimmer (high air)', [1, 0.9, 0.7, 0.5, 0.4], 0.7, 0], ['glass', 'Glass pad (high)', [1, 1, 0.8, 0.6, 0.5], 0.35, 0],
+  ['bells', 'FM bells', [0.8, 1, 1, 0.8, 0.6], 0.6, 0], ['arp', 'Mallet arpeggio', [0, 0.5, 0.9, 1, 1], 0.35, 0],
+  ['pluck', 'Plucks', [0, 0, 0.6, 1, 1], 0.5, 0], ['sparkle', 'Sparkle', [0.4, 0.7, 1, 1, 0.8], 0.9, 0],
+].filter(([id]) => (window.SYNTH_LAYERS || {})[id]);
+const at5 = (a, x) => { const p = x * 4, i = Math.min(3, Math.floor(p)), f = p - i; return a[i] + (a[i + 1] - a[i]) * f; };
+const LKEY = 'synth-v2';
+let lset = {}, lnodes = {};
+function loadL() {
+  let saved = {}; try { saved = JSON.parse(localStorage.getItem(LKEY) || '{}'); } catch (e) {}
+  lset = {}; LAYERS.forEach(([id, , , vol, on]) => { lset[id] = saved[id] || (CFG.synth || {})[id] || { on, vol }; });
+}
+function saveL() { try { localStorage.setItem(LKEY, JSON.stringify(lset)); } catch (e) {} }
+async function ensureLayer(id) {
+  if (!ctx || lnodes[id]) return;
+  lnodes[id] = 'loading';
+  const buf = await dec(window.SYNTH_LAYERS[id]);
+  const g = ctx.createGain(); g.gain.value = 0; g.connect(master);
+  const s = ctx.createBufferSource(); s.buffer = buf; s.loop = true; s.loopEnd = buf.duration;
+  const when = ctx.currentTime + 0.05, offset = ((((when - t0) % buf.duration) + buf.duration) % buf.duration);
+  s.connect(g); s.start(when, offset); lnodes[id] = { gain: g };   // in phase with the drums
+  applyLayers();
+}
+function applyLayers() {
+  LAYERS.forEach(([id, , curve]) => {
+    const st = lset[id], g = st.on ? st.vol * at5(curve, V) : 0;
+    const m = document.getElementById('lm-' + id); if (m) m.style.width = Math.min(100, g * 100) + '%';
+    if (!ctx) return;
+    if (st.on && !lnodes[id]) { ensureLayer(id); return; }
+    const n = lnodes[id]; if (n && n !== 'loading') n.gain.gain.setTargetAtTime(g, ctx.currentTime, 0.15);
+  });
+}
+function renderL() {
+  $('llist').innerHTML = LAYERS.map(([id, label, curve]) => { const st = lset[id]; return `
+    <div class="dr lr ${st.on ? '' : 'off'}" data-id="${id}">
+      <button class="sw" aria-pressed="${!!st.on}" aria-label="Toggle ${label}"></button>
+      <div>${label}<div class="lvl-m"><i id="lm-${id}"></i></div></div>
+      <input class="rng" type="range" min="0" max="100" value="${Math.round(st.vol * 100)}" aria-label="${label} volume">
+      <div class="curve fol" title="Level at knob positions 1 to 5">${curve.map(c => `<i class="${c > 0 ? 'on' : ''}" style="height:${Math.max(3, c * 22)}px"></i>`).join('')}</div>
+    </div>`; }).join('');
+  document.querySelectorAll('.dr.lr[data-id]').forEach(row => {
+    const id = row.dataset.id;
+    row.querySelector('.sw').onclick = () => { lset[id].on = lset[id].on ? 0 : 1; saveL(); renderL(); };
+    row.querySelector('input').oninput = e => { lset[id].vol = e.target.value / 100; saveL(); applyLayers(); };
+  });
+  applyLayers();
+}
+$('lreset').onclick = () => { try { localStorage.removeItem(LKEY); } catch (e) {} loadL(); renderL(); };
+
+/* ---------- drones ---------- */
+// notes each drone can play (rendered separately, all on the same clock)
+const NOTES = [['low2', 'D↓↓', 'two octaves down'], ['low', 'D↓', 'octave down'], ['root', 'D', 'root'], ['third', 'F♯', 'major 3rd'], ['fifth', 'A', '5th']];
+const NOTE_GAIN = { low2: 0.9, low: 0.9, root: 1, third: 0.75, fifth: 0.85 };
+// on, vol, follow, tone, notes
+const DDEF = { 'pads-deneb': [1, 0.65, -0.3, 0.85, ['low', 'root']], 'pads-petrichor': [1, 0.35, 0, 0.8, ['root', 'fifth']],
+  'pads-saudade': [0, 0.5, 0.3, 0.8, ['root', 'third', 'fifth']], 'trumpet-faded': [0, 0.35, 0.6, 0.9, ['root']], 'trumpet-steady': [0, 0.35, 0.8, 0.9, ['root', 'fifth']] };
+const SKEY = 'drones-v4';   // v4: trumpets off by default (Trumpet Fields is an ensemble, its players are slightly detuned)
+let dset = {};
+function loadD() {
+  dset = {}; let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(SKEY) || '{}'); } catch (e) {}
+  (window.DRONES || []).forEach(d => { const c = (CFG.drones || {})[d.id]; const [on, vol, fol, tone, notes] = saved[d.id] || (c && [c.on, c.vol, c.follow, c.tone, c.notes]) || DDEF[d.id] || [0, 0.5, 0, 0.8, ['root']]; dset[d.id] = { on, vol, fol, tone, notes: notes.filter(n => d.tones[n]) }; });
+}
+function saveD() { try { localStorage.setItem(SKEY, JSON.stringify(Object.fromEntries(Object.entries(dset).map(([k, s]) => [k, [s.on, s.vol, s.fol, s.tone, s.notes]])))); } catch (e) {} }
+const follow = (f, v) => f >= 0 ? (1 - f) + f * v : 1 + f * v;       // gain multiplier from knob
+const toneHz = t => 200 * Math.pow(90, t);                            // 0..1 -> 200 Hz .. 18 kHz
+let dnodes = {};
+function applyDrones() {
+  Object.entries(dset).forEach(([id, s]) => {
+    const g = s.on ? s.vol * follow(s.fol, V) : 0;
+    const m = document.getElementById('dm-' + id); if (m) m.style.width = Math.min(100, g * 100) + '%';
+    const n = dnodes[id]; if (!n || !ctx) return;
+    n.gain.gain.setTargetAtTime(g, ctx.currentTime, 0.15);
+    n.filt.frequency.setTargetAtTime(toneHz(s.tone), ctx.currentTime, 0.05);
+    Object.entries(n.notes).forEach(([note, ng]) => ng.gain.setTargetAtTime(s.notes.includes(note) ? NOTE_GAIN[note] : 0, ctx.currentTime, 0.25));
+  });
+}
+function renderD() {
+  $('dlist').innerHTML = (window.DRONES || []).map(d => { const s = dset[d.id]; return `
+    <div class="dr ${s.on ? '' : 'off'}" data-id="${d.id}">
+      <button class="sw" aria-pressed="${!!s.on}" aria-label="Toggle ${d.label}"></button>
+      <div>${d.label}<small>${d.source}</small>
+        <div class="notes">${NOTES.filter(([k]) => d.tones[k]).map(([k, lab, title]) => `<button class="nt" data-n="${k}" aria-pressed="${s.notes.includes(k)}" title="${title}">${lab}</button>`).join('')}</div>
+        <div class="lvl-m"><i id="dm-${d.id}"></i></div></div>
+      <input class="rng" type="range" min="0" max="100" value="${Math.round(s.vol * 100)}" data-k="vol" aria-label="${d.label} volume">
+      <input class="rng fol" type="range" min="-100" max="100" value="${Math.round(s.fol * 100)}" data-k="fol" aria-label="${d.label} follow knob">
+      <input class="rng tone" type="range" min="0" max="100" value="${Math.round(s.tone * 100)}" data-k="tone" aria-label="${d.label} tone">
+    </div>`; }).join('');
+  document.querySelectorAll('.dr[data-id]').forEach(row => {
+    const id = row.dataset.id;
+    row.querySelector('.sw').onclick = () => { dset[id].on = dset[id].on ? 0 : 1; saveD(); renderD(); applyDrones(); };
+    row.querySelectorAll('.nt').forEach(b => b.onclick = () => {
+      const n = b.dataset.n, ns = dset[id].notes;
+      dset[id].notes = ns.includes(n) ? ns.filter(x => x !== n) : [...ns, n];
+      b.setAttribute('aria-pressed', dset[id].notes.includes(n)); saveD(); applyDrones();
+    });
+    row.querySelectorAll('input').forEach(inp => inp.oninput = () => { dset[id][inp.dataset.k] = inp.value / 100; saveD(); applyDrones(); });
+  });
+  applyDrones();
+}
+$('dreset').onclick = () => { try { localStorage.removeItem(SKEY); } catch (e) {} loadD(); renderD(); renderRhythms(); loadL(); renderL();
+/* ---------- engine config: the whole mix as one JSON (saved to the dev server so it can become the default) ---------- */
+function engineConfig() {
+  return { rhythm: (SETS[rhythm] || {}).name, volume: +$('vol').value / 100, knob: +V.toFixed(3),
+    synth: Object.fromEntries(Object.entries(lset).map(([k, v]) => [k, { on: v.on, vol: +(+v.vol).toFixed(3) }])),
+    drones: Object.fromEntries(Object.entries(dset).map(([k, v]) => [k, { on: v.on, vol: +(+v.vol).toFixed(3), follow: +(+v.fol).toFixed(3), tone: +(+v.tone).toFixed(3), notes: v.notes }])) };
+}
+let cfgTimer = null;
+function saveConfig() {
+  clearTimeout(cfgTimer);
+  cfgTimer = setTimeout(() => { if (location.protocol.startsWith('http')) fetch('engine-config.json', { method: 'PUT', body: JSON.stringify(engineConfig(), null, 1) }).catch(() => {}); }, 800);
+}
+document.addEventListener('input', saveConfig); document.addEventListener('click', saveConfig);
+saveConfig(); };
+
+/* ---------- knob input ---------- */
+const knob = $('knob'); let drag = null;
+knob.addEventListener('pointerdown', e => { knob.setPointerCapture(e.pointerId); drag = { y: e.clientY, x: e.clientX, v: V, ang: angleOf(e) }; knob.focus(); });
+knob.addEventListener('pointermove', e => {
+  if (!drag) return;
+  const dv = (drag.y - e.clientY) / 250 + (e.clientX - drag.x) / 600;     // up = more, a bit of sideways too
+  setV(drag.v + dv);
+});
+knob.addEventListener('pointerup', () => drag = null);
+knob.addEventListener('wheel', e => { e.preventDefault(); setV(V - e.deltaY / 1500); }, { passive: false });
+function angleOf(e) { const r = knob.getBoundingClientRect(); return Math.atan2(e.clientY - r.top - r.height / 2, e.clientX - r.left - r.width / 2); }
+document.addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === ' ') { e.preventDefault(); play(); }
+  else if (/^[1-5]$/.test(e.key)) setV((+e.key - 1) / 4);
+  else if (e.key === 'ArrowUp' || e.key === 'ArrowRight') { e.preventDefault(); setV(V + (e.shiftKey ? 0.25 : 0.04)); }
+  else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') { e.preventDefault(); setV(V - (e.shiftKey ? 0.25 : 0.04)); }
+});
+
+/* ---------- audio ---------- */
+async function init() {
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+  master = ctx.createGain(); master.gain.value = $('vol').value / 100;
+  analyser = ctx.createAnalyser(); analyser.fftSize = 2048;
+  master.connect(analyser); analyser.connect(ctx.destination);
+  $('play').textContent = 'Loading…';
+  const first = await decodeSet(rhythm);
+  LOOP = first[0].duration;   // loop length follows the tempo set in the piano roll
+  const dbufs = await Promise.all((window.DRONES || []).map(d => Promise.all(Object.entries(d.tones).map(async ([n, b64]) => [n, await dec(b64)]))));
+  t0 = ctx.currentTime + 0.15;
+  (window.DRONES || []).forEach((d, k) => {
+    const filt = ctx.createBiquadFilter(); filt.type = 'lowpass'; filt.Q.value = 0.5;
+    const gain = ctx.createGain(); gain.gain.value = 0;
+    filt.connect(gain); gain.connect(master);
+    const notes = {};
+    dbufs[k].forEach(([n, buf]) => {
+      const s = ctx.createBufferSource(); s.buffer = buf; s.loop = true; s.loopEnd = buf.duration;
+      const ng = ctx.createGain(); ng.gain.value = 0; s.connect(ng); ng.connect(filt); s.start(t0); notes[n] = ng;
+    });
+    dnodes[d.id] = { filt, gain, notes };
+  });
+  applyDrones();
+  activeSet = startSet(first, t0, 1);
+  gains = activeSet.gains;
+  applyLayers();
+}
+const dec = b64 => { const bin = atob(b64), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return ctx.decodeAudioData(u.buffer); };
+const decodeSet = i => Promise.all(SETS[i].loops.map(dec));       // only the selected rhythm is decoded (memory)
+function startSet(bufs, when, level) {
+  // all loops of a set start in phase with the global clock t0, so switching rhythm never breaks the bar
+  const out = ctx.createGain(); out.gain.value = level; out.connect(master);
+  const w = weights(V), offset = (((when - t0) % LOOP) + LOOP) % LOOP;
+  const srcs = [], gs = bufs.map((b, k) => {
+    const s = ctx.createBufferSource(); s.buffer = b; s.loop = true; s.loopStart = 0; s.loopEnd = b.duration;
+    const g = ctx.createGain(); g.gain.value = w[k]; s.connect(g); g.connect(out); s.start(when, offset % b.duration); srcs.push(s); return g;
+  });
+  return { out, gains: gs, srcs };
+}
+async function switchRhythm(i) {
+  if (i === rhythm && activeSet) return;
+  rhythm = i; try { localStorage.setItem('rhythm', SETS[i].name); } catch (e) {}
+  renderRhythms();
+  if (!ctx) return;
+  document.querySelectorAll('.rh').forEach(b => b.disabled = true);
+  const bufs = await decodeSet(i);
+  if (i !== rhythm) return;                     // another click arrived while decoding
+  const now = ctx.currentTime, when = now + 0.08, old = activeSet;
+  activeSet = startSet(bufs, when, 0); gains = activeSet.gains;
+  activeSet.out.gain.setValueAtTime(0, when); activeSet.out.gain.linearRampToValueAtTime(1, when + 1.2);
+  if (old) { old.out.gain.setValueAtTime(old.out.gain.value, when); old.out.gain.linearRampToValueAtTime(0, when + 1.2); old.srcs.forEach(s => s.stop(when + 1.4)); }
+  document.querySelectorAll('.rh').forEach(b => b.disabled = false);
+}
+function renderRhythms() {
+  $('rhythms').innerHTML = SETS.map((st, i) => `<button class="rh" aria-pressed="${i === rhythm}" data-i="${i}">${st.name}</button>`).join('');
+  document.querySelectorAll('.rh').forEach(b => b.onclick = () => switchRhythm(+b.dataset.i));
+}
+async function play() {
+  if (!ctx) await init();
+  if (running) { await ctx.suspend(); running = false; $('play').textContent = '▶ Play'; return; }
+  await ctx.resume(); running = true; $('play').textContent = '■ Stop';
+}
+$('play').onclick = play;
+$('vol').oninput = e => { if (master) master.gain.setTargetAtTime(e.target.value / 100, ctx.currentTime, 0.05); };
+
+/* ---------- simulated data signal ---------- */
+let sim = false, simTimer = null, simTarget = 0, simNext = 0;
+function toggleSim(on = !sim) {
+  sim = on; $('sim').setAttribute('aria-pressed', on); clearInterval(simTimer);
+  if (on) simTimer = setInterval(() => { const now = performance.now(); if (now > simNext) { simTarget = Math.random(); simNext = now + 4000 + Math.random() * 7000; } setV(V + (simTarget - V) * 0.025, true); }, 100);
+}
+$('sim').onclick = () => toggleSim();
+
+/* ---------- visuals ---------- */
+const td = new Uint8Array(2048);
+(function frame() {
+  requestAnimationFrame(frame);
+  if (!ctx || !running) return;
+  analyser.getByteTimeDomainData(td); let s = 0; for (const v of td) s += ((v - 128) / 128) ** 2; const rms = Math.sqrt(s / td.length);
+  const acc = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+  $('glow').style.background = `radial-gradient(circle, ${acc}${Math.min(255, Math.round(rms * 900)).toString(16).padStart(2, '0')} 0%, transparent 62%)`;
+  const bar = Math.floor(((ctx.currentTime - t0) % LOOP + LOOP) % LOOP / (LOOP / BARS));
+  [...$('bars').children].forEach((el, k) => el.classList.toggle('on', k === bar));
+})();
+
+loadD(); renderD(); renderRhythms(); loadL(); renderL();
+/* ---------- engine config: the whole mix as one JSON (saved to the dev server so it can become the default) ---------- */
+function engineConfig() {
+  return { rhythm: (SETS[rhythm] || {}).name, volume: +$('vol').value / 100, knob: +V.toFixed(3),
+    synth: Object.fromEntries(Object.entries(lset).map(([k, v]) => [k, { on: v.on, vol: +(+v.vol).toFixed(3) }])),
+    drones: Object.fromEntries(Object.entries(dset).map(([k, v]) => [k, { on: v.on, vol: +(+v.vol).toFixed(3), follow: +(+v.fol).toFixed(3), tone: +(+v.tone).toFixed(3), notes: v.notes }])) };
+}
+let cfgTimer = null;
+function saveConfig() {
+  clearTimeout(cfgTimer);
+  cfgTimer = setTimeout(() => { if (location.protocol.startsWith('http')) fetch('engine-config.json', { method: 'PUT', body: JSON.stringify(engineConfig(), null, 1) }).catch(() => {}); }, 800);
+}
+document.addEventListener('input', saveConfig); document.addEventListener('click', saveConfig);
+saveConfig();
+setV(0);
+</script>
+</body>
+</html>

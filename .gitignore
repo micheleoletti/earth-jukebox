@@ -4,3 +4,17 @@ frames/
 *.mp4
 *.mov
 .env
+
+# Thunder X3M one-shots: local editing aid only, not redistributable
+music-engine/prototype/samples/taiko/
+music-engine/tools/.venv/
+music-engine/prototype/samples/labs-perc/
+music-engine/prototype/samples/labs-bells/
+music-engine/tools/states/_*
+music-engine/prototype/bounces/*.wav
+
+# raw third-party samples (Pixabay licence: no standalone redistribution)
+music-engine/prototype/samples/
+
+__pycache__/
+.wrangler/

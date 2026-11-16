@@ -1,0 +1,227 @@
+{
+ "id": "e2_ian",
+ "title": "Hurricane Ian: wind, then water",
+ "timebase": "hour",
+ "t0": "2022-09-23T00:00Z",
+ "n": 216,
+ "hero": "wind",
+ "partner": "surge",
+ "link": {
+  "r": 0.641,
+  "lag": 12,
+  "n": 204,
+  "r_lag0": 0.379,
+  "sign": "positive",
+  "strength": "strong",
+  "method": "Pearson r, ERA5 hourly wind speed at Fort Myers vs CO-OPS Fort Myers hourly water level above MHHW, partner lagged 0..12 h (tide not removed)",
+  "lag_unit": "hour",
+  "curve": [
+   [
+    0,
+    0.379
+   ],
+   [
+    1,
+    0.419
+   ],
+   [
+    2,
+    0.458
+   ],
+   [
+    3,
+    0.493
+   ],
+   [
+    4,
+    0.521
+   ],
+   [
+    5,
+    0.544
+   ],
+   [
+    6,
+    0.564
+   ],
+   [
+    7,
+    0.584
+   ],
+   [
+    8,
+    0.604
+   ],
+   [
+    9,
+    0.621
+   ],
+   [
+    10,
+    0.633
+   ],
+   [
+    11,
+    0.639
+   ],
+   [
+    12,
+    0.641
+   ]
+  ],
+  "residual": {
+   "r": 0.67,
+   "lag": 11,
+   "curve": [
+    [
+     0,
+     0.393
+    ],
+    [
+     1,
+     0.434
+    ],
+    [
+     2,
+     0.474
+    ],
+    [
+     3,
+     0.508
+    ],
+    [
+     4,
+     0.536
+    ],
+    [
+     5,
+     0.56
+    ],
+    [
+     6,
+     0.583
+    ],
+    [
+     7,
+     0.607
+    ],
+    [
+     8,
+     0.632
+    ],
+    [
+     9,
+     0.653
+    ],
+    [
+     10,
+     0.666
+    ],
+    [
+     11,
+     0.67
+    ],
+    [
+     12,
+     0.667
+    ]
+   ],
+   "method": "same, partner = surge residual (observed minus CO-OPS tide prediction)"
+  },
+  "edge": true,
+  "note": "r keeps rising up to the 12 h edge: no clear optimum lag. The window correlation is driven by the slow shape (wind high for a day before landfall, water high for a day after). Peak to peak timing is given separately.",
+  "peak_to_peak_h": 4.5
+ },
+ "stats": {
+  "landfall (IBTrACS, Cayo Costa)": "28 Sep 19:04 UTC",
+  "landfall wind (kt)": 130,
+  "landfall pressure (hPa)": 941,
+  "best track minimum pressure (hPa)": 937,
+  "best track maximum wind (kt)": 140,
+  "ERA5 Fort Myers max wind (m/s, model)": 13.8,
+  "ERA5 Fort Myers max wind time": "28 Sep 18:00 UTC",
+  "ERA5 Fort Myers wind 2017-21 mean (m/s)": 2.2117,
+  "ERA5 Fort Myers peak wind vs normal (sigma)": 10.0,
+  "ERA5 Fort Myers peak wind vs 2017-21 mean (%)": 524.0,
+  "ERA5 Fort Myers min surface pressure (hPa, model)": 984.9,
+  "ERA5 Fort Myers min pressure time": "28 Sep 22:00 UTC",
+  "Fort Myers max water level above MHHW (m, 6 min)": 2.212,
+  "Fort Myers max water level time": "28 Sep 22:30 UTC",
+  "Fort Myers max surge residual (m, hourly)": 2.191,
+  "lowest water (negative surge)": "Cedar Key -2.25 m below MHHW",
+  "peak to peak lag, wind max to water max (h)": 4.5,
+  "best lag in 0 to 12 h window (h, at the edge)": 12,
+  "link r wind to water level": 0.641,
+  "lag wind to surge residual (h)": 11,
+  "link r wind to surge residual": 0.67,
+  "IMERG SW Florida max hourly mean rain (mm/h)": 5.12,
+  "IMERG SW Florida window total (mm, area mean)": 168.0,
+  "Naples gauge last reading": "28 Sep 17:06 UTC, 1.89 m above MHHW"
+ },
+ "gaps": [
+  "Naples gauge stopped reporting at 28 Sep 17:06 UTC at 1.89 m above MHHW during the surge; the gap after that is kept empty, never bridged.",
+  "ERA5 is a reanalysis model at about 31 km: it smooths the eyewall, so its Fort Myers wind and pressure are far weaker than the measured storm (best track minimum is given for comparison).",
+  "ERA5 point = grid cell 26.75N -81.75E nearest the Fort Myers gauge.",
+  "Water levels are 6 minute CO-OPS readings averaged to the hour; an hour with fewer than 6 of 10 readings stays empty (null).",
+  "Datum MHHW (mean higher high water) per gauge: values above 0 are above the normal daily high tide.",
+  "Fort Myers 8725520 recorded the whole event (no gap); it is the hero partner gauge.",
+  "Track: IBTrACS 3-hourly positions; points between the 6-hourly best track fixes are interpolated by IBTrACS (flag interpolated = true).",
+  "IMERG V07B Final run half-hourly rain is a satellite estimate (observed, merged microwave and infrared); grid shown at 0.2 deg, 3 hour means.",
+  "The wind to water level link includes the tide; the residual link (observed minus tide prediction) is given too.",
+  "ERA5 wind and pressure grids are sampled every 0.5 deg from the 0.25 deg ERA5 grid."
+ ],
+ "hero_norm": {
+  "mean": 2.2117,
+  "sd": 1.1564,
+  "n": 1080,
+  "years": "2017-2021",
+  "method": "ERA5 hourly 10 m wind speed at the Fort Myers grid cell, 23 Sep to 1 Oct of 2017 to 2021 (all hours pooled)"
+ },
+ "sources": [
+  {
+   "name": "IBTrACS v04r01 (North Atlantic)",
+   "producer": "NOAA NCEI (best track from NHC)",
+   "resolution": "3-hourly positions",
+   "kind": "observed",
+   "period": "2022-09-23 to 2022-10-01",
+   "baseline": "none",
+   "url": "https://www.ncei.noaa.gov/products/international-best-track-archive"
+  },
+  {
+   "name": "ERA5 hourly 10 m wind and surface pressure",
+   "producer": "ECMWF Copernicus C3S, served by Open-Meteo",
+   "resolution": "0.25 deg, hourly (grid sampled at 0.5 deg)",
+   "kind": "model",
+   "period": "2022-09-23 to 2022-10-01",
+   "baseline": "Fort Myers wind 23 Sep to 1 Oct, 2017 to 2021",
+   "url": "https://open-meteo.com/en/docs/historical-weather-api"
+  },
+  {
+   "name": "CO-OPS water level and tide predictions",
+   "producer": "NOAA CO-OPS",
+   "resolution": "6 minute, averaged hourly",
+   "kind": "observed",
+   "period": "2022-09-23 to 2022-10-01",
+   "baseline": "datum MHHW; predictions used for the surge residual",
+   "url": "https://tidesandcurrents.noaa.gov/waterlevels.html?id=8725520"
+  },
+  {
+   "name": "GPM IMERG Final Precipitation L3 Half Hourly V07 (GPM_3IMERGHH)",
+   "producer": "NASA GES DISC",
+   "resolution": "0.1 deg, 30 minute (shown 0.2 deg, 3 hour)",
+   "kind": "observed",
+   "period": "2022-09-23 to 2022-10-01",
+   "baseline": "none",
+   "url": "https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGHH_07/summary"
+  },
+  {
+   "name": "Hurricane Ian Tropical Cyclone Report (context)",
+   "producer": "NOAA National Hurricane Center",
+   "resolution": "event report",
+   "kind": "observed",
+   "period": "2022",
+   "baseline": "none",
+   "url": "https://www.nhc.noaa.gov/data/tcr/AL092022_Ian.pdf"
+  }
+ ]
+}

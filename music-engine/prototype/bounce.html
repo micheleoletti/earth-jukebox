@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Loop Bouncer</title>
+<style>
+  body { background: #0a0e1a; color: #e8ecf5; font: 14px/1.5 system-ui, sans-serif; padding: 24px 16px; max-width: 800px; margin: 0 auto; }
+  button { font: inherit; padding: 10px 18px; border-radius: 10px; border: none; background: #e8665c; color: #111; font-weight: 700; cursor: pointer; }
+  pre { background: #121a2c; padding: 12px; border-radius: 10px; white-space: pre-wrap; }
+  audio { width: 100%; margin: 4px 0 12px; }
+</style>
+</head>
+<body>
+<h1>Loop Bouncer</h1>
+<p>Renders the 8-bar loop at 5 intensities in the browser (no DAW) and saves WAVs via <code>tools/serve.py</code> to <code>prototype/bounces/</code>. Optional URL params: <code>?big=&lt;sample id&gt;&amp;hit=&lt;sample id&gt;</code>.</p>
+<button id="go">Bounce 5 versions</button> <button id="layers">Bounce synth layers</button>
+<pre id="log"></pre>
+<div id="players"></div>
+<script src="samples/taiko-samples.js"></script>
+<script src="loop-engine.js"></script>
+<script>
+const log = s => { document.getElementById('log').textContent += s + '\n'; console.log(s); };
+async function decodeAll(sr) {
+  const ctx = new OfflineAudioContext(2, sr, sr), out = {};
+  for (const S of TAIKO_SAMPLES) {
+    const bin = atob(S.b64), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+    const b = await ctx.decodeAudioData(u.buffer);
+    // brightness: zero-crossing rate over the first 300 ms (lower = deeper)
+    const d = b.getChannelData(0), n = Math.min(d.length, sr * 0.3); let z = 0; for (let i = 1; i < n; i++) if ((d[i] >= 0) !== (d[i - 1] >= 0)) z++;
+    out[S.id] = { buf: b, zcr: z / (n / sr), dur: b.duration };
+  }
+  return out;
+}
+async function bounce() {
+  const sr = 48000, p = new URLSearchParams(location.search);
+  log('decoding taiko samples...');
+  const S = await decodeAll(sr);
+  const singles = Object.entries(S).filter(([, v]) => v.dur < 8).sort((a, b) => a[1].zcr - b[1].zcr);
+  singles.forEach(([k, v]) => log(`  ${k}: ${v.zcr.toFixed(0)} crossings/s, ${v.dur.toFixed(2)} s`));
+  const big = p.get('big') || singles[0][0], hit = p.get('hit') || (singles.find(([, v]) => v.zcr > singles[0][1].zcr * 2) || singles[1])[0]; // deep boom + a punchier, brighter hit
+  log(`big taiko = ${big}\nhit taiko = ${hit}`);
+  // Kontakt taiko stems (tools/render_taiko.py) if present; ?taiko=samples forces the Pixabay hits
+  const stems = [];
+  if (p.get('taiko') !== 'samples') {
+    const dctx = new OfflineAudioContext(2, sr, sr);
+    for (let k = 0; k < 5; k++) {
+      const r = await fetch(`bounces/taiko-i${k}.wav`);
+      stems.push(r.ok ? await dctx.decodeAudioData(await r.arrayBuffer()) : null);
+    }
+    log(`taiko source: ${stems.every(Boolean) ? 'Kontakt stems (Thunder X3M)' : 'Pixabay samples (stems missing)'}`);
+  }
+  const bufs = [];
+  for (const [k, x] of LoopEngine.LEVELS.entries()) {
+    const t0 = performance.now();
+    bufs.push(await LoopEngine.render({ x, taikoBig: S[big].buf, taikoHit: S[hit].buf, taikoStem: stems[k] || undefined, parts: stems[k] ? 'taiko' : 'nobeds', sr }));
+    log(`rendered intensity ${x} in ${((performance.now() - t0) / 1000).toFixed(1)} s`);
+  }
+  // one gain for all versions (keeps the loudness difference between intensities), peak at -1 dBFS
+  let peak = 0; bufs.forEach(b => { for (let c = 0; c < 2; c++) for (const v of b.getChannelData(c)) peak = Math.max(peak, Math.abs(v)); });
+  const gain = 0.891 / peak; log(`global peak ${peak.toFixed(3)}, gain ${gain.toFixed(3)}`);
+  for (let k = 0; k < bufs.length; k++) {
+    const name = `loop-i${k}.wav`, wav = LoopEngine.toWav(bufs[k], gain);
+    let pk = 0, rms = 0; const d = bufs[k].getChannelData(0); for (const v of d) { pk = Math.max(pk, Math.abs(v * gain)); rms += (v * gain) ** 2; }
+    const r = await fetch('bounces/' + name, { method: 'PUT', body: wav });
+    log(`${name}: ${r.status === 204 ? 'saved' : 'SAVE FAILED ' + r.status}, peak ${(20 * Math.log10(pk)).toFixed(1)} dBFS, rms ${(10 * Math.log10(rms / d.length)).toFixed(1)} dBFS`);
+    const a = document.createElement('audio'); a.controls = true; a.loop = true; a.src = URL.createObjectURL(new Blob([wav], { type: 'audio/wav' }));
+    document.getElementById('players').append(Object.assign(document.createElement('div'), { textContent: `Intensity ${k + 1}/5` }), a);
+  }
+  window.BOUNCE_DONE = true; log('done');
+}
+// synth layers as separate stems for the knob player (each switchable there); x picks the pattern variant
+const LAYERS = [
+  ['sub', 'sub', 0.5], ['thump', 'thump', 0.5], ['brass', 'brass', 1], ['braam', 'braam', 1], ['riser', 'riser', 1],
+  ['chime', 'chime', 0], ['pad', 'pad', 0.25], ['shimmer', 'shimmer', 0.5], ['glass', 'glass', 0.5], ['bells', 'bells', 0.5],
+  ['arp', 'arp', 0.5], ['pluck', 'pluck', 0.5], ['sparkle', 'sparkle', 0.5], ['trumpet', 'trumpet', 0.5],
+];
+async function bounceLayers() {
+  const sr = 48000, bufs = [];
+  for (const [id, only, x] of LAYERS) { bufs.push(await LoopEngine.render({ x, only, sr })); log(`rendered layer ${id}`); }
+  let peak = 0; bufs.forEach(b => { for (let c = 0; c < 2; c++) for (const v of b.getChannelData(c)) peak = Math.max(peak, Math.abs(v)); });
+  const gain = 0.891 / peak;      // one gain for all layers: keeps their balance
+  for (const [k, [id]] of LAYERS.entries()) {
+    const r = await fetch(`bounces/synth-${id}.wav`, { method: 'PUT', body: LoopEngine.toWav(bufs[k], gain) });
+    log(`synth-${id}.wav: ${r.status === 204 ? 'saved' : 'SAVE FAILED'}`);
+  }
+  const r = await fetch('encode-sets', { method: 'POST' }); log(await r.text()); window.BOUNCE_DONE = true;
+}
+document.getElementById('layers').onclick = () => bounceLayers().catch(e => { log('ERROR ' + e.stack); window.BOUNCE_ERR = String(e); });
+document.getElementById('go').onclick = () => bounce().catch(e => { log('ERROR ' + e.stack); window.BOUNCE_ERR = String(e); });
+</script>
+</body>
+</html>

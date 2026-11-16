@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "playground",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8765", "--directory", "playground"],
+      "port": 8765
+    },
+    {
+      "name": "music-prototype",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["music-engine/tools/serve.py", "8766"],
+      "port": 8766
+    }
+  ]
+}
